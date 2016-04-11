@@ -100,7 +100,7 @@ public class Simulation{
 		g.setColor(Color.white);
 		g.fillRect(0,0,bounds.width, bounds.height);
 		long timeElapsed = System.currentTimeMillis()-lastTime;
-		System.out.println(timeElapsed);
+		//System.out.println(timeElapsed);
 		camera.updatePosition(timeElapsed);
 		this.drawLine(g,-1000,0,1000,0,Color.red);
 		this.drawLine(g,0,-1000,0,1000,Color.red);
