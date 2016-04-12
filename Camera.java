@@ -1,11 +1,11 @@
 import java.awt.*;
 import java.awt.event.*;
-public class Camera {
+public class Camera implements KeyListener{
 	double x; //location of center of camera
 	double y; 
 	double zoom;
 	double zoomSpeed=1.05;
-	double panSpeed=5*Simulation.delay;//This is divided by timeElapsed later, which is 17->25
+	double panSpeed=15*Simulation.delay;//This is divided by timeElapsed later, which is 17->25
 	boolean isMovingUp=false;
 	boolean isMovingDown=false;
 	boolean isMovingLeft=false;
@@ -38,6 +38,12 @@ public class Camera {
 		if(e.getKeyCode()==KeyEvent.VK_X){
 			isZoomingOut=false;
 		}
+		if(e.getKeyCode()==KeyEvent.VK_C){
+			Simulation.isSpeedingUp=false;
+		}
+		if(e.getKeyCode()==KeyEvent.VK_V){
+			Simulation.isSlowingDown=false;
+		}
 	}
 	public void keyPressed(KeyEvent e) {
 		if(e.getKeyCode()==KeyEvent.VK_RIGHT){
@@ -58,6 +64,16 @@ public class Camera {
 		if(e.getKeyCode()==KeyEvent.VK_X){
 			isZoomingOut=true;
 		}
+		if(e.getKeyCode()==KeyEvent.VK_C){
+			Simulation.isSpeedingUp=true;
+		}
+		if(e.getKeyCode()==KeyEvent.VK_V){
+			Simulation.isSlowingDown=true;
+		}
+		if(e.getKeyCode()==KeyEvent.VK_SPACE){
+			Simulation.isPaused=!Simulation.isPaused;
+		}
+		
 	}
 	public void updatePosition(long timeElapsed){
 		double moveAmount = panSpeed/(Math.min(1, zoom)*timeElapsed);
@@ -67,5 +83,10 @@ public class Camera {
 		if(isMovingDown) y+=moveAmount;
 		if(isZoomingIn) zoom*=zoomSpeed;
 		if(isZoomingOut) zoom*=1/zoomSpeed;
+		if(Simulation.isSpeedingUp) Simulation.timeFactor*=1.02;//this actually controls simulation speed, not the camera
+		if(Simulation.isSlowingDown) Simulation.timeFactor/=1.2;
+	}
+	@Override
+	public void keyTyped(KeyEvent e) {
 	}
 }

@@ -8,6 +8,8 @@ import java.awt.geom.AffineTransform;
 public class RenderObject {
 	double x; //actual location of center of ellipse
 	double y;
+	double drawLocationX;//location in pixels on monitor
+	double drawLocationY;
 	double radius; //actual radius
 	Color color;
 	double vx;
@@ -57,6 +59,7 @@ public class RenderObject {
 		this.ay=ay;
 	}
 	void updateObject(double timeElapsed, GravityObject[] gravityObjects){
+		//TODO: Rather than assume beginning Velocity/accel for entire timeElapsed, assume Middle for better approximation
 		this.setLocation(x+vx*timeElapsed+0.5*ax*timeElapsed*timeElapsed,y+vy*timeElapsed+0.5*ay*timeElapsed*timeElapsed);
 		this.setVelocity(vx+ax*timeElapsed,vy+ay*timeElapsed);
 		this.setAcceleration(0, 0);//change this if using maneuvering thrusters
@@ -74,10 +77,10 @@ public class RenderObject {
 		//if zoom is 2 and x is 10 and y is 10, camera located at -10,-10
 		//should be drawn at 40,40 with radius 20 
 		//upper left corner 20,20 (10 + 10 - 10)*2
-		
-		double ellipseUpperLeftCornerX = (x-radius-camera.x-camera.bounds.getCenterX())*camera.zoom+camera.bounds.getCenterX();
-		double ellipseUpperLeftCornerY = (y-radius-camera.y-camera.bounds.getCenterY())*camera.zoom+camera.bounds.getCenterY();
-
+		drawLocationX = (x-camera.x-camera.bounds.getCenterX())*camera.zoom+camera.bounds.getCenterX();
+		drawLocationY = (y-camera.y-camera.bounds.getCenterY())*camera.zoom+camera.bounds.getCenterY();
+		double ellipseUpperLeftCornerX = drawLocationX - radius*camera.zoom;
+		double ellipseUpperLeftCornerY = drawLocationY - radius*camera.zoom;
 		double ellipseDiameter = 2*radius*camera.zoom;
 		ellipse.setFrame(ellipseUpperLeftCornerX,ellipseUpperLeftCornerY,ellipseDiameter,ellipseDiameter);
 		
@@ -106,7 +109,7 @@ public class RenderObject {
 			this.vy=0;
 		}
 		this.ax += gx;
-		System.out.println(this.ax);
+		//System.out.println(this.ax);
 		
 		this.ay += gy;
 	}

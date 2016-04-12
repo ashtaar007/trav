@@ -10,63 +10,47 @@ public class Simulation{
 	static JFrame mainFrame;
 	static Camera camera;
 	private Timer timer;
+	static boolean isPaused;
+	static boolean isSpeedingUp;
+	static boolean isSlowingDown;
+	public static double timeFactor = 1;
     public final static int delay = 8; // every .33 second
     int i =0;
     long lastTime;
+    MouseManager mouseManager;
+    RenderObject[] renderObjects;
+    GravityObject[] gravityObjects;
 	public Simulation(){
 		GraphicsEnvironment env = GraphicsEnvironment.getLocalGraphicsEnvironment();
         GraphicsDevice device = env.getDefaultScreenDevice();
         GraphicsConfiguration gc = device.getDefaultConfiguration();
         mainFrame = new JFrame(gc);
+        
         mainFrame.setUndecorated(true);
         mainFrame.setIgnoreRepaint(true);
         device.setFullScreenWindow(mainFrame);
         Rectangle bounds = mainFrame.getBounds();
+        
+        
+        JMenuBar greenMenuBar = new JMenuBar();
+        greenMenuBar.setOpaque(true);
+        greenMenuBar.setBackground(new Color(154, 165, 127));
+        greenMenuBar.setPreferredSize(new Dimension(200, 20));
+        
+        
+        
+        
         mainFrame.createBufferStrategy(2);
         camera = new Camera(bounds);
         BufferStrategy bufferStrategy = mainFrame.getBufferStrategy();
         this.addEscapeListener(mainFrame);
-        mainFrame.addKeyListener(new KeyListener() {
-			@Override
-			public void keyTyped(KeyEvent e) {
-			}
-			@Override
-			public void keyReleased(KeyEvent e) {
-				Simulation.camera.keyReleased(e);
-			}
-			@Override
-			public void keyPressed(KeyEvent e) {
-				Simulation.camera.keyPressed(e);
-			}
-		});
-        mainFrame.addMouseListener(new MouseListener() {
-			@Override
-			public void mouseClicked(MouseEvent arg0) {		
-			}
-			@Override
-			public void mouseEntered(MouseEvent arg0) {
-			}
-			@Override
-			public void mouseExited(MouseEvent arg0) {				
-			}
-			@Override
-			public void mousePressed(MouseEvent arg0) {			
-			}
-			@Override
-			public void mouseReleased(MouseEvent arg0) {
-			}
-		});
-        mainFrame.addMouseMotionListener(new MouseMotionListener() {
-			@Override
-			public void mouseDragged(MouseEvent e) {
-			}
-			@Override
-			public void mouseMoved(MouseEvent e) {	
-			}
-		});
+        mainFrame.addKeyListener(camera);
+        mouseManager = new MouseManager(this);
+        mainFrame.addMouseListener(mouseManager);
+        mainFrame.addMouseMotionListener(mouseManager);
         
-        RenderObject[] renderObjects = this.createObjects();
-        GravityObject[] gravityObjects = this.createGravityObjects();
+        renderObjects = this.createObjects();
+        gravityObjects = this.createGravityObjects();
        
         lastTime = System.currentTimeMillis();        
         ActionListener action = new ActionListener()
@@ -77,7 +61,7 @@ public class Simulation{
                 Graphics g = bufferStrategy.getDrawGraphics();
                 if (!bufferStrategy.contentsLost()) {
                     	//Draw Stuff Here
-                    drawStuff(g, bounds, renderObjects, gravityObjects);
+                    drawStuff(g, bounds);
                     	
                      //
                      bufferStrategy.show();
@@ -92,8 +76,9 @@ public class Simulation{
 	}
 	
 	
+	
 
-	public void drawStuff(Graphics g1, Rectangle bounds, RenderObject[] renderObjects, GravityObject[] gravityObjects){
+	public void drawStuff(Graphics g1, Rectangle bounds){
 		Graphics2D g = (Graphics2D) g1;
     	//draw background;
 		i++;
@@ -104,9 +89,15 @@ public class Simulation{
 		camera.updatePosition(timeElapsed);
 		this.drawLine(g,-1000,0,1000,0,Color.red);
 		this.drawLine(g,0,-1000,0,1000,Color.red);
-		
+		double factoredTimeElapsed;
+		if(this.isPaused){
+			factoredTimeElapsed=0;
+		}
+		else{
+			factoredTimeElapsed=timeElapsed*timeFactor;
+		}
 		for (int i = 0; i < renderObjects.length; i++) {
-			renderObjects[i].updateObject(timeElapsed, gravityObjects);
+			renderObjects[i].updateObject(factoredTimeElapsed, gravityObjects);
 			this.drawRenderObject(renderObjects[i], g);
             
 
@@ -120,9 +111,34 @@ public class Simulation{
 
         }
 		for (int i = 0; i < gravityObjects.length; i++) {
-			gravityObjects[i].updateObject(timeElapsed, gravityObjects);
+			gravityObjects[i].updateObject(factoredTimeElapsed, gravityObjects);
 			this.drawRenderObject(gravityObjects[i], g);
 		}
+		
+		if(mouseManager.isDragging){
+			g.setColor(Color.blue);
+			g.drawLine(
+					mouseManager.mouseInitialClickLocationX,
+					mouseManager.mouseInitialClickLocationY,
+					mouseManager.mouseCurrentLocationX,
+					mouseManager.mouseInitialClickLocationY);
+			g.drawLine(
+					mouseManager.mouseCurrentLocationX,
+					mouseManager.mouseInitialClickLocationY,
+					mouseManager.mouseCurrentLocationX,
+					mouseManager.mouseCurrentLocationY);
+			g.drawLine(
+					mouseManager.mouseInitialClickLocationX,
+					mouseManager.mouseInitialClickLocationY,
+					mouseManager.mouseInitialClickLocationX,
+					mouseManager.mouseCurrentLocationY);
+			g.drawLine(
+					mouseManager.mouseInitialClickLocationX,
+					mouseManager.mouseCurrentLocationY,
+					mouseManager.mouseCurrentLocationX,
+					mouseManager.mouseCurrentLocationY);			
+		}
+		
 		lastTime += timeElapsed;
 		
 	}
