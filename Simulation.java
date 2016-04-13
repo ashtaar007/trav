@@ -7,6 +7,7 @@ import java.awt.geom.Ellipse2D;
 import java.awt.geom.Line2D;
 import java.awt.geom.AffineTransform;
 public class Simulation{
+	private static final boolean test = true;
 	static JFrame mainFrame;
 	static Camera camera;
 	private Timer timer;
@@ -31,16 +32,17 @@ public class Simulation{
         device.setFullScreenWindow(mainFrame);
         Rectangle bounds = mainFrame.getBounds();
         
-        
+        /*
         JMenuBar greenMenuBar = new JMenuBar();
         greenMenuBar.setOpaque(true);
         greenMenuBar.setBackground(new Color(154, 165, 127));
-        greenMenuBar.setPreferredSize(new Dimension(200, 20));
+        greenMenuBar.setPreferredSize(new Dimension(200, 20));*/
         
         
         
         
-        mainFrame.createBufferStrategy(2);
+        if(!test)mainFrame.createBufferStrategy(2);
+        else mainFrame.createBufferStrategy(1);
         camera = new Camera(bounds);
         BufferStrategy bufferStrategy = mainFrame.getBufferStrategy();
         this.addEscapeListener(mainFrame);
@@ -83,7 +85,7 @@ public class Simulation{
     	//draw background;
 		i++;
 		g.setColor(Color.white);
-		g.fillRect(0,0,bounds.width, bounds.height);
+		if(!test)g.fillRect(0,0,bounds.width, bounds.height);
 		long timeElapsed = System.currentTimeMillis()-lastTime;
 		//System.out.println(timeElapsed);
 		camera.updatePosition(timeElapsed);

@@ -16,6 +16,8 @@ public class RenderObject {
 	double vy;//velocity components
 	double ax;
 	double ay;//acceleration components
+	double jx;
+	double jy;//jerk components
 	boolean isTargetted=false;
 	Ellipse2D.Double ellipse; //location, radius for purposes of drawing
 	Ellipse2D.Double targettingCircle;
@@ -58,15 +60,22 @@ public class RenderObject {
 		this.ax=ax;
 		this.ay=ay;
 	}
+	void setJerk(double jx, double jy){
+		this.jx=jx;
+		this.jy=jy;
+	}
 	void updateObject(double timeElapsed, GravityObject[] gravityObjects){
-		//TODO: Rather than assume beginning Velocity/accel for entire timeElapsed, assume Middle for better approximation
-		this.setLocation(x+vx*timeElapsed+0.5*ax*timeElapsed*timeElapsed,y+vy*timeElapsed+0.5*ay*timeElapsed*timeElapsed);
-		this.setVelocity(vx+ax*timeElapsed,vy+ay*timeElapsed);
+		//TODO: If necessary, consider using smaller increments... can do multiple iterations instead of using t=timeElapsed
+		double t = timeElapsed;
+		this.setLocation(x+vx*t+0.5*ax*t*t+1/6*jx*t*t*t,y+vy*t+0.5*ay*t*t+1/6*jy*t*t*t);
+		this.setVelocity(vx+ax*t+0.5*jx*t*t,vy+ay*t+0.5*jy*t*t);
 		this.setAcceleration(0, 0);//change this if using maneuvering thrusters
+		this.setJerk(0, 0);//change this if using maneuvering thrusters
 		for(int i=0; i<gravityObjects.length; i++){
 			this.addGravity(gravityObjects[i]);
 		}
 	}
+	
 	void updateDrawLocation(Camera camera){
 		//if zoom is 2 and x is 10 and y is 10, camera located at 0,0
 		//should be drawn at 20,20 with radius 20
@@ -95,23 +104,35 @@ public class RenderObject {
 		if (gravityObject == this) return;
 		double dx = gravityObject.x-x;
 		double dy = gravityObject.y-y;//Vector to gravity object;
-		double mag = Math.sqrt(dx*dx+dy*dy);
-		double magInv = 1/mag;
-		double gx = gravityObject.gravity*magInv*magInv*magInv*dx;// g/mag^2 is acceleration magnitude, multiplied by x/mag, which is unit vector
-		double gy = gravityObject.gravity*magInv*magInv*magInv*dy;
-		if(mag<gravityObject.radius){
-			//gx*=mag/gravityObject.radius;
-			//gy*=mag/gravityObject.radius;
+		
+		double r = Math.sqrt(dx*dx+dy*dy);
+		double rInv = 1/r;
+		double ax = gravityObject.gravity*rInv*rInv*rInv*dx;// g/mag^2 is acceleration magnitude, multiplied by x/mag, which is unit vectormagInv*magInv*magInv*dx;// g/mag^2 is acceleration magnitude, multiplied by x/mag, which is unit vectormagInv*magInv*magInv*dx;// g/mag^2 is acceleration magnitude, multiplied by x/mag, which is unit vectorrInv*rInv*rInv*dx;// g/r^2 is acceleration rnitude, multiplied by x/r, which is unit vector
+		double ay = gravityObject.gravity*rInv*rInv*rInv*dy;
+		if(r<gravityObject.radius){
+			//gx*=r/gravityObject.radius;
+			//gy*=r/gravityObject.radius;
 			
 			this.ax=0; 
 			this.ay=0; 
 			this.vx=0; 
 			this.vy=0;
 		}
-		this.ax += gx;
+		this.ax += ax;
 		//System.out.println(this.ax);
 		
-		this.ay += gy;
+		this.ay += ay;
+		
+		
+		//this section makes the calculation almost perfect!
+		
+		double dvx = gravityObject.vx-vx;
+		double dvy = gravityObject.vy-vy;
+		double i = (dx*dvx+dy*dvy)*rInv*rInv;
+		double jx = ax*(dvx/dx-3*i);
+		double jy = ay*(dvy/dy-3*i);
+		this.jx += jx;
+		this.jy += jy;
 	}
 }
 class GravityObject extends RenderObject{
