@@ -34,8 +34,8 @@ public class MouseManager implements MouseListener, MouseMotionListener{
 		int minY;
 		int maxY;
 		if(!isDragging&&e.getButton()==1){
-			for(int i=0;i<targetSimulation.renderObjects.length;i++){
-				targetSimulation.renderObjects[i].isTargetted=targetSimulation.renderObjects[i].ellipse.contains((double)mouseInitialClickLocationX,(double)mouseInitialClickLocationY);
+			for(int i=0;i<targetSimulation.renderObjects.size();i++){
+				targetSimulation.renderObjects.get(i).isTargetted=targetSimulation.renderObjects.get(i).ellipse.contains((double)mouseInitialClickLocationX,(double)mouseInitialClickLocationY);
 			}
 			for(int i=0;i<targetSimulation.gravityObjects.length;i++){
 				targetSimulation.gravityObjects[i].isTargetted=targetSimulation.gravityObjects[i].ellipse.contains((double)mouseInitialClickLocationX,(double)mouseInitialClickLocationY);
@@ -59,8 +59,8 @@ public class MouseManager implements MouseListener, MouseMotionListener{
 				maxY=mouseReleaseLocationY;
 				minY=mouseInitialClickLocationY;
 			}
-			for(int i=0;i<targetSimulation.renderObjects.length;i++){
-				targetSimulation.renderObjects[i].isTargetted=this.isContained(targetSimulation.renderObjects[i],minX,maxX,minY,maxY);
+			for(int i=0;i<targetSimulation.renderObjects.size();i++){
+				targetSimulation.renderObjects.get(i).isTargetted=this.isContained(targetSimulation.renderObjects.get(i),minX,maxX,minY,maxY);
 			}
 			for(int i=0;i<targetSimulation.gravityObjects.length;i++){
 				targetSimulation.gravityObjects[i].isTargetted=this.isContained(targetSimulation.gravityObjects[i],minX,maxX,minY,maxY);

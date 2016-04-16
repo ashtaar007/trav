@@ -84,7 +84,7 @@ public class Camera implements KeyListener{
 		if(isZoomingIn) zoom*=zoomSpeed;
 		if(isZoomingOut) zoom*=1/zoomSpeed;
 		if(Simulation.isSpeedingUp) Simulation.timeFactor*=1.02;//this actually controls simulation speed, not the camera
-		if(Simulation.isSlowingDown) Simulation.timeFactor/=1.2;
+		if(Simulation.isSlowingDown) Simulation.timeFactor/=1.02;
 	}
 	@Override
 	public void keyTyped(KeyEvent e) {

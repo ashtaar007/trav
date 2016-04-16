@@ -1,7 +1,9 @@
 class ShipWeapon {	
 }
 class MissileWeapon extends ShipWeapon {
-	static int[] flightTime = {-99,-99,1,1,2,5,10};
+	static int[] flightTime = {-99,-99,1,1,1,3,5};
+}
+class Torpedo extends MissileWeapon{
 }
 class BeamWeapon extends ShipWeapon {
 }
@@ -35,7 +37,7 @@ class ParticleBeam extends BeamWeapon{
 	static int[] rangeModifiers = {-3,-2,-1,-1,0,-1,-1};
 	static double MCrTurret = 4.0;
 	static double MCrBarbette = 8.0;
-	static double MCrBay;
+	static double MCrBay =20.0;
 	static int turretSlotsRequired = 3;
 }
 

@@ -64,16 +64,18 @@ public class RenderObject {
 		this.jx=jx;
 		this.jy=jy;
 	}
-	void updateObject(double timeElapsed, GravityObject[] gravityObjects){
+	boolean updateObject(double timeElapsed, GravityObject[] gravityObjects){
 		//TODO: If necessary, consider using smaller increments... can do multiple iterations instead of using t=timeElapsed
 		double t = timeElapsed;
 		this.setLocation(x+vx*t+0.5*ax*t*t+1/6*jx*t*t*t,y+vy*t+0.5*ay*t*t+1/6*jy*t*t*t);
 		this.setVelocity(vx+ax*t+0.5*jx*t*t,vy+ay*t+0.5*jy*t*t);
 		this.setAcceleration(0, 0);//change this if using maneuvering thrusters
 		this.setJerk(0, 0);//change this if using maneuvering thrusters
+		boolean deleteObject = false;
 		for(int i=0; i<gravityObjects.length; i++){
-			this.addGravity(gravityObjects[i]);
+			deleteObject|=this.addGravity(gravityObjects[i]);
 		}
+		return deleteObject;
 	}
 	
 	void updateDrawLocation(Camera camera){
@@ -100,8 +102,9 @@ public class RenderObject {
 		targettingCircle.setFrame(targettingCircleUpperLeftCornerX,targettingCircleUpperLeftCornerY,targettingCircleDiameter,targettingCircleDiameter);
 		
 	}
-	void addGravity(GravityObject gravityObject){
-		if (gravityObject == this) return;
+	boolean addGravity(GravityObject gravityObject){
+		//return true if object should be deleted, else return false
+		if (gravityObject == this) return false;
 		double dx = gravityObject.x-x;
 		double dy = gravityObject.y-y;//Vector to gravity object;
 		
@@ -110,13 +113,7 @@ public class RenderObject {
 		double ax = gravityObject.gravity*rInv*rInv*rInv*dx;// g/mag^2 is acceleration magnitude, multiplied by x/mag, which is unit vectormagInv*magInv*magInv*dx;// g/mag^2 is acceleration magnitude, multiplied by x/mag, which is unit vectormagInv*magInv*magInv*dx;// g/mag^2 is acceleration magnitude, multiplied by x/mag, which is unit vectorrInv*rInv*rInv*dx;// g/r^2 is acceleration rnitude, multiplied by x/r, which is unit vector
 		double ay = gravityObject.gravity*rInv*rInv*rInv*dy;
 		if(r<gravityObject.radius){
-			//gx*=r/gravityObject.radius;
-			//gy*=r/gravityObject.radius;
-			
-			this.ax=0; 
-			this.ay=0; 
-			this.vx=0; 
-			this.vy=0;
+			return true;
 		}
 		this.ax += ax;
 		//System.out.println(this.ax);
@@ -133,6 +130,7 @@ public class RenderObject {
 		double jy = ay*(dvy/dy-3*i);
 		this.jx += jx;
 		this.jy += jy;
+		return false;
 	}
 }
 class GravityObject extends RenderObject{
