@@ -1,12 +1,18 @@
 import java.awt.*;
 import java.awt.image.BufferStrategy;
+import java.text.AttributedCharacterIterator;
+import java.text.AttributedString;
 import java.util.ArrayList;
+import java.util.Hashtable;
 
 import javax.swing.*;
 import java.applet.Applet;
 import java.awt.event.*;
+import java.awt.font.*;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Line2D;
+import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 import java.awt.geom.AffineTransform;
 public class Simulation{
 	private static final boolean test = false;
@@ -33,18 +39,9 @@ public class Simulation{
         mainFrame.setIgnoreRepaint(true);
         device.setFullScreenWindow(mainFrame);
         Rectangle bounds = mainFrame.getBounds();
-        
-        /*
-        JMenuBar greenMenuBar = new JMenuBar();
-        greenMenuBar.setOpaque(true);
-        greenMenuBar.setBackground(new Color(154, 165, 127));
-        greenMenuBar.setPreferredSize(new Dimension(200, 20));*/
-        
-        
-        
-        
         if(!test)mainFrame.createBufferStrategy(2);
         else mainFrame.createBufferStrategy(1);
+        
         camera = new Camera(bounds);
         BufferStrategy bufferStrategy = mainFrame.getBufferStrategy();
         this.addEscapeListener(mainFrame);
@@ -124,7 +121,12 @@ public class Simulation{
 			gravityObjects[i].updateObject(factoredTimeElapsed, gravityObjects);
 			this.drawRenderObject(gravityObjects[i], g);
 		}
-		
+		for (int i = 0; i < renderObjects.size(); i++) {
+			this.drawRenderObjectLabel(renderObjects.get(i),g);
+		}
+		for (int i = 0; i < gravityObjects.length; i++) {
+			this.drawRenderObjectLabel(gravityObjects[i], g);
+		}
 		if(mouseManager.isDragging){
 			g.setColor(Color.blue);
 			g.drawLine(
@@ -148,11 +150,53 @@ public class Simulation{
 					mouseManager.mouseCurrentLocationX,
 					mouseManager.mouseCurrentLocationY);			
 		}
-		
+		this.drawTestTextLayout(g);
 		lastTime += timeElapsed;
 		
 	}
-	
+	private LineBreakMeasurer lineMeasurer;
+	private int paragraphStart;
+	private int paragraphEnd;
+	private static final 
+    Hashtable<TextAttribute, Object> map =
+       new Hashtable<TextAttribute, Object>();
+
+	static {
+		map.put(TextAttribute.FAMILY, "Serif");
+		map.put(TextAttribute.SIZE, 18);
+		//map.put(TextAttribute.WEIGHT, 1);
+		//map.put(TextAttribute.BACKGROUND, Color.WHITE);
+	} 
+	private static AttributedString vanGogh = new AttributedString(
+	        "Many people believe that Vincent van Gogh painted his best works " +
+	        "during the two-year period he spent in Provence. Here is where he " +
+	        "painted The Starry Night--which some consider to be his greatest " +
+	        "work of all. However, as his artistic brilliance reached new " +
+	        "heights in Provence, his physical and mental health plummeted. ",
+	        map);
+
+	public void drawTestTextLayout(Graphics2D g){
+		if (lineMeasurer == null) {
+            AttributedCharacterIterator paragraph = vanGogh.getIterator();
+            paragraphStart = paragraph.getBeginIndex();
+            paragraphEnd = paragraph.getEndIndex();
+            FontRenderContext frc = g.getFontRenderContext();
+            lineMeasurer = new LineBreakMeasurer(paragraph, frc);
+        }
+		//modify breakWidth for variable wrapping widths
+		float breakWidth = (float)mainFrame.getSize().width;
+        float drawPosY = 0;
+        lineMeasurer.setPosition(paragraphStart);
+        while (lineMeasurer.getPosition() < paragraphEnd) {
+        	
+        	TextLayout layout = lineMeasurer.nextLayout(breakWidth);
+        	float drawPosX = 0;
+        	drawPosY += layout.getAscent();
+        	layout.draw(g, drawPosX, drawPosY);
+        	drawPosY += layout.getDescent() + layout.getLeading();
+        }
+	}
+	Color myColor = new Color(128,0,128,255);
 	public void drawRenderObject(RenderObject obj, Graphics2D g){
 		
         obj.updateDrawLocation(camera);
@@ -166,14 +210,25 @@ public class Simulation{
         g.fill(obj.ellipse);
         this.drawLine(g,obj.x,obj.y,obj.x+100*obj.vx,obj.y+100*obj.vy, Color.green); //velocity vectors
         this.drawLine(g,obj.x,obj.y,obj.x+200000*obj.ax,obj.y+200000*obj.ay, Color.red); //acceleration vectors
-        
-           
+        //this.drawLine(g,obj.x,obj.y,obj.x+10000000*obj.jx,obj.y+10000000*obj.jy, Color.blue); //jerk vectors
+    
+	}
+	public void drawRenderObjectLabel(RenderObject obj, Graphics2D g){
+		int x =(int) obj.drawLocationX;
+		int y =(int) obj.drawLocationY;
+		g.setColor(myColor);
+		//if(!obj.isTargetted){
+			g.drawString(obj.name,x,y);
+		//}
+		if(obj.isTargetted){
+			//g.drawString(obj.description,x,y);
+		}
 	}
 	public void drawLine(Graphics2D g, double x1i,double y1i,double x2i,double y2i, Color color){
-		int x1 =(int) ((x1i-camera.x-camera.bounds.getCenterX())*camera.zoom+camera.bounds.getCenterX());
-		int y1 =(int) ((y1i-camera.y-camera.bounds.getCenterY())*camera.zoom+camera.bounds.getCenterY());
-		int x2 =(int) ((x2i-camera.x-camera.bounds.getCenterX())*camera.zoom+camera.bounds.getCenterX());
-		int y2 =(int) ((y2i-camera.y-camera.bounds.getCenterY())*camera.zoom+camera.bounds.getCenterY());
+		int x1 =(int) (camera.getDrawX(x1i));
+		int y1 =(int) (camera.getDrawY(y1i));
+		int x2 =(int) (camera.getDrawX(x2i));
+		int y2 =(int) (camera.getDrawY(y2i));
 		g.setColor(color);
 		g.drawLine(x1,y1,x2,y2);
 	}
@@ -227,6 +282,7 @@ public class Simulation{
 	        public void actionPerformed(ActionEvent e) {
 	        	timer.stop();
 	        	mainframe.dispose();
+	        	System.exit(1);
 	        }
 	    };
 	    mainframe.getRootPane().registerKeyboardAction(escListener,

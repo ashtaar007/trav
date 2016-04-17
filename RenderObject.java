@@ -10,6 +10,8 @@ public class RenderObject {
 	double y;
 	double drawLocationX;//location in pixels on monitor
 	double drawLocationY;
+	String name;
+	String description;
 	double radius; //actual radius
 	Color color;
 	double vx;
@@ -21,22 +23,6 @@ public class RenderObject {
 	boolean isTargetted=false;
 	Ellipse2D.Double ellipse; //location, radius for purposes of drawing
 	Ellipse2D.Double targettingCircle;
-	public RenderObject(){
-		this.x=0;
-		this.y=0;
-		this.radius=5;
-		this.color=Color.black;
-		this.ellipse = new Ellipse2D.Double();
-		this.targettingCircle = new Ellipse2D.Double();
-	}
-	public RenderObject(double x, double y, double radius){
-		this.x=x;
-		this.y=y;
-		this.radius=radius;
-		this.color=Color.black;
-		this.ellipse = new Ellipse2D.Double();
-		this.targettingCircle = new Ellipse2D.Double();
-	}
 	public RenderObject(double x, double y, double radius, double vx, double vy){
 		this.x=x;
 		this.y=y;
@@ -46,6 +32,8 @@ public class RenderObject {
 		this.color=Color.black;
 		this.ellipse = new Ellipse2D.Double();
 		this.targettingCircle = new Ellipse2D.Double();
+		this.name = "Test Label";
+		this.description = "\nTest Description\nNext Line";
 	}
 	
 	void setLocation(double x, double y){
@@ -70,7 +58,7 @@ public class RenderObject {
 		this.setLocation(x+vx*t+0.5*ax*t*t+1/6*jx*t*t*t,y+vy*t+0.5*ay*t*t+1/6*jy*t*t*t);
 		this.setVelocity(vx+ax*t+0.5*jx*t*t,vy+ay*t+0.5*jy*t*t);
 		this.setAcceleration(0, 0);//change this if using maneuvering thrusters
-		this.setJerk(0, 0);//change this if using maneuvering thrusters
+		this.setJerk(0, 0);
 		boolean deleteObject = false;
 		for(int i=0; i<gravityObjects.length; i++){
 			deleteObject|=this.addGravity(gravityObjects[i]);
@@ -88,8 +76,8 @@ public class RenderObject {
 		//if zoom is 2 and x is 10 and y is 10, camera located at -10,-10
 		//should be drawn at 40,40 with radius 20 
 		//upper left corner 20,20 (10 + 10 - 10)*2
-		drawLocationX = (x-camera.x-camera.bounds.getCenterX())*camera.zoom+camera.bounds.getCenterX();
-		drawLocationY = (y-camera.y-camera.bounds.getCenterY())*camera.zoom+camera.bounds.getCenterY();
+		drawLocationX = camera.getDrawX(x);
+		drawLocationY = camera.getDrawY(y);
 		double ellipseUpperLeftCornerX = drawLocationX - radius*camera.zoom;
 		double ellipseUpperLeftCornerY = drawLocationY - radius*camera.zoom;
 		double ellipseDiameter = 2*radius*camera.zoom;
@@ -135,15 +123,9 @@ public class RenderObject {
 }
 class GravityObject extends RenderObject{
 	double gravity;
-	public GravityObject(){
-		super();
-	}
 	public GravityObject(double x, double y, double radius, double vx, double vy, double gravity){
 		super(x,y,radius,vx,vy);
 		this.gravity=gravity;
-	}
-	void setGravity(double g){
-		this.gravity=g;
 	}
 	
 	
