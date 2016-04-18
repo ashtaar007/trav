@@ -6,15 +6,11 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 
 import javax.swing.*;
-import java.applet.Applet;
 import java.awt.event.*;
 import java.awt.font.*;
-import java.awt.geom.Ellipse2D;
-import java.awt.geom.Line2D;
-import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
-import java.awt.geom.AffineTransform;
 public class Simulation{
+	Graphics2D g;
+	FontRenderContext frc;
 	private static final boolean test = false;
 	static JFrame mainFrame;
 	static Camera camera;
@@ -29,6 +25,8 @@ public class Simulation{
     static MouseManager mouseManager;
     static ArrayList<RenderObject> renderObjects;
     static GravityObject[] gravityObjects;
+    ArrayList<RenderObject> selectedObjects;
+    static Color myColor = new Color(128,0,128,255);
 	public Simulation(){
 		GraphicsEnvironment env = GraphicsEnvironment.getLocalGraphicsEnvironment();
         GraphicsDevice device = env.getDefaultScreenDevice();
@@ -52,19 +50,19 @@ public class Simulation{
         
         renderObjects = this.createObjects();
         gravityObjects = this.createGravityObjects();
+        selectedObjects =  new ArrayList<RenderObject>(0);
        
-        lastTime = System.currentTimeMillis();        
+        lastTime = System.currentTimeMillis(); 
         ActionListener action = new ActionListener()
         {   
                 @Override
             public void actionPerformed(ActionEvent event)
             {
-                Graphics g = bufferStrategy.getDrawGraphics();
+                g = (Graphics2D)bufferStrategy.getDrawGraphics();
+                frc = g.getFontRenderContext();
                 if (!bufferStrategy.contentsLost()) {
                     	//Draw Stuff Here
-                    drawStuff(g, bounds);
-                    	
-                     //
+                     drawStuff();
                      bufferStrategy.show();
                      g.dispose();
                 }
@@ -79,12 +77,11 @@ public class Simulation{
 	
 	
 
-	public void drawStuff(Graphics g1, Rectangle bounds){
-		Graphics2D g = (Graphics2D) g1;
+	public void drawStuff(){
     	//draw background;
 		i++;
 		g.setColor(Color.white);
-		if(!test)g.fillRect(0,0,bounds.width, bounds.height);
+		if(!test)g.fillRect(0,0,camera.bounds.width, camera.bounds.height);
 		long timeElapsed = System.currentTimeMillis()-lastTime;
 		//System.out.println(timeElapsed);
 		camera.updatePosition(timeElapsed);
@@ -150,53 +147,42 @@ public class Simulation{
 					mouseManager.mouseCurrentLocationX,
 					mouseManager.mouseCurrentLocationY);			
 		}
-		this.drawTestTextLayout(g);
 		lastTime += timeElapsed;
+		this.displaySelectedShipMenu();
+	}
+	void displaySelectedShipMenu(){
+		Rectangle bounds = camera.bounds;
+		g.setColor(Color.cyan);
+		int topOfMenuY = (int) (bounds.height*0.95);
+		//g.fillRect(0, topOfMenuY, bounds.width, bounds.height);
+		int currentX=0;
+		int widthPerBox = (int)(0.03*bounds.width);
+		for(int i=0;i<this.selectedObjects.size() && currentX<0.9*bounds.width;i++){
+			currentX=widthPerBox*i;
+			g.setColor(Color.black);			
+			g.fillRect(widthPerBox*i,topOfMenuY, widthPerBox, bounds.height);
+			g.setColor(Color.cyan);
+			g.drawLine(currentX, topOfMenuY, currentX, bounds.height);
+			g.setColor(Color.green);
+			this.displayWrappedText(this.selectedObjects.get(i).bottomDisplayParagraph,currentX,topOfMenuY,widthPerBox);
+		}
 		
 	}
-	private LineBreakMeasurer lineMeasurer;
-	private int paragraphStart;
-	private int paragraphEnd;
-	private static final 
-    Hashtable<TextAttribute, Object> map =
-       new Hashtable<TextAttribute, Object>();
-
-	static {
-		map.put(TextAttribute.FAMILY, "Serif");
-		map.put(TextAttribute.SIZE, 18);
-		//map.put(TextAttribute.WEIGHT, 1);
-		//map.put(TextAttribute.BACKGROUND, Color.WHITE);
-	} 
-	private static AttributedString vanGogh = new AttributedString(
-	        "Many people believe that Vincent van Gogh painted his best works " +
-	        "during the two-year period he spent in Provence. Here is where he " +
-	        "painted The Starry Night--which some consider to be his greatest " +
-	        "work of all. However, as his artistic brilliance reached new " +
-	        "heights in Provence, his physical and mental health plummeted. ",
-	        map);
-
-	public void drawTestTextLayout(Graphics2D g){
-		if (lineMeasurer == null) {
-            AttributedCharacterIterator paragraph = vanGogh.getIterator();
-            paragraphStart = paragraph.getBeginIndex();
-            paragraphEnd = paragraph.getEndIndex();
-            FontRenderContext frc = g.getFontRenderContext();
-            lineMeasurer = new LineBreakMeasurer(paragraph, frc);
-        }
-		//modify breakWidth for variable wrapping widths
-		float breakWidth = (float)mainFrame.getSize().width;
-        float drawPosY = 0;
-        lineMeasurer.setPosition(paragraphStart);
+	public void displayWrappedText(AttributedCharacterIterator paragraph, int x, int y,int width){
+		int paragraphEnd = paragraph.getEndIndex();
+		LineBreakMeasurer lineMeasurer = new LineBreakMeasurer(paragraph, frc);
+		float breakWidth = width-2;
+        float drawPosY = y;
         while (lineMeasurer.getPosition() < paragraphEnd) {
-        	
         	TextLayout layout = lineMeasurer.nextLayout(breakWidth);
-        	float drawPosX = 0;
+        	float drawPosX = x+2;
         	drawPosY += layout.getAscent();
         	layout.draw(g, drawPosX, drawPosY);
         	drawPosY += layout.getDescent() + layout.getLeading();
         }
+		
 	}
-	Color myColor = new Color(128,0,128,255);
+
 	public void drawRenderObject(RenderObject obj, Graphics2D g){
 		
         obj.updateDrawLocation(camera);

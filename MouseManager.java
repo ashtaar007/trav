@@ -33,37 +33,78 @@ public class MouseManager implements MouseListener, MouseMotionListener{
 		int maxX;
 		int minY;
 		int maxY;
-		if(!isDragging&&e.getButton()==1){
-			for(int i=0;i<targetSimulation.renderObjects.size();i++){
-				targetSimulation.renderObjects.get(i).isTargetted=targetSimulation.renderObjects.get(i).ellipse.contains((double)mouseInitialClickLocationX,(double)mouseInitialClickLocationY);
+		RenderObject currentObject;
+		if(e.getButton() == 1){
+			targetSimulation.selectedObjects.clear();
+			if(!isDragging){
+				if(e.getModifiers()==17){//M1+Shift
+					for(int i=0;i<targetSimulation.renderObjects.size();i++){
+						currentObject = targetSimulation.renderObjects.get(i);
+						currentObject.isTargetted|=currentObject.ellipse.contains((double)mouseInitialClickLocationX,(double)mouseInitialClickLocationY);
+						if(currentObject.isTargetted) targetSimulation.selectedObjects.add(currentObject);
+					}
+					for(int i=0;i<targetSimulation.gravityObjects.length;i++){
+						currentObject = targetSimulation.gravityObjects[i];
+						currentObject.isTargetted|=currentObject.ellipse.contains((double)mouseInitialClickLocationX,(double)mouseInitialClickLocationY);
+						if(currentObject.isTargetted) targetSimulation.selectedObjects.add(currentObject);
+					}
+				}
+				else{
+					for(int i=0;i<targetSimulation.renderObjects.size();i++){
+						currentObject = targetSimulation.renderObjects.get(i);
+						currentObject.isTargetted=currentObject.ellipse.contains((double)mouseInitialClickLocationX,(double)mouseInitialClickLocationY);
+						if(currentObject.isTargetted) targetSimulation.selectedObjects.add(currentObject);
+					}
+					for(int i=0;i<targetSimulation.gravityObjects.length;i++){
+						currentObject = targetSimulation.gravityObjects[i];
+						currentObject.isTargetted=currentObject.ellipse.contains((double)mouseInitialClickLocationX,(double)mouseInitialClickLocationY);
+						if(currentObject.isTargetted) targetSimulation.selectedObjects.add(currentObject);
+					}
+				}
 			}
-			for(int i=0;i<targetSimulation.gravityObjects.length;i++){
-				targetSimulation.gravityObjects[i].isTargetted=targetSimulation.gravityObjects[i].ellipse.contains((double)mouseInitialClickLocationX,(double)mouseInitialClickLocationY);
-			}
-		}
-		if(isDragging&&e.getButton()==1){
-			//get targets in box, lose targets outside
-			if(mouseInitialClickLocationX>=mouseReleaseLocationX){
-				maxX=mouseInitialClickLocationX;
-				minX=mouseReleaseLocationX;
-			}
-			else{
-				maxX=mouseReleaseLocationX;
-				minX=mouseInitialClickLocationX;
-			}
-			if(mouseInitialClickLocationY>=mouseReleaseLocationY){
-				maxY=mouseInitialClickLocationY;
-				minY=mouseReleaseLocationY;
-			}
-			else{
-				maxY=mouseReleaseLocationY;
-				minY=mouseInitialClickLocationY;
-			}
-			for(int i=0;i<targetSimulation.renderObjects.size();i++){
-				targetSimulation.renderObjects.get(i).isTargetted=this.isContained(targetSimulation.renderObjects.get(i),minX,maxX,minY,maxY);
-			}
-			for(int i=0;i<targetSimulation.gravityObjects.length;i++){
-				targetSimulation.gravityObjects[i].isTargetted=this.isContained(targetSimulation.gravityObjects[i],minX,maxX,minY,maxY);
+			else{//isDragging == true
+				//get targets in box, lose targets outside
+				if(mouseInitialClickLocationX>=mouseReleaseLocationX){
+					maxX=mouseInitialClickLocationX;
+					minX=mouseReleaseLocationX;
+				}
+				else{
+					maxX=mouseReleaseLocationX;
+					minX=mouseInitialClickLocationX;
+				}
+				if(mouseInitialClickLocationY>=mouseReleaseLocationY){
+					maxY=mouseInitialClickLocationY;
+					minY=mouseReleaseLocationY;
+				}
+				else{
+					maxY=mouseReleaseLocationY;
+					minY=mouseInitialClickLocationY;
+				}
+				if(e.getModifiers()==17){//M1+Shift
+					for(int i=0;i<targetSimulation.renderObjects.size();i++){
+						currentObject = targetSimulation.renderObjects.get(i);
+						currentObject.isTargetted|=this.isContained(currentObject,minX,maxX,minY,maxY);
+						if(currentObject.isTargetted) targetSimulation.selectedObjects.add(currentObject);
+					}
+					for(int i=0;i<targetSimulation.gravityObjects.length;i++){
+						currentObject = targetSimulation.gravityObjects[i];
+						currentObject.isTargetted|=this.isContained(currentObject,minX,maxX,minY,maxY);
+						if(currentObject.isTargetted) targetSimulation.selectedObjects.add(currentObject);
+					}
+					
+				}
+				else{
+					for(int i=0;i<targetSimulation.renderObjects.size();i++){
+						currentObject = targetSimulation.renderObjects.get(i);
+						currentObject.isTargetted=this.isContained(currentObject,minX,maxX,minY,maxY);
+						if(currentObject.isTargetted) targetSimulation.selectedObjects.add(currentObject);
+					}
+					for(int i=0;i<targetSimulation.gravityObjects.length;i++){
+						currentObject = targetSimulation.gravityObjects[i];
+						currentObject.isTargetted=this.isContained(currentObject,minX,maxX,minY,maxY);
+						if(currentObject.isTargetted) targetSimulation.selectedObjects.add(currentObject);
+					}
+				}
 			}
 		}
 		isDragging=false;

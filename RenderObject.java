@@ -1,11 +1,29 @@
 import java.awt.*;
 import java.awt.image.BufferStrategy;
+import java.util.Hashtable;
+
 import javax.swing.*;
 import java.applet.Applet;
 import java.awt.event.*;
+import java.awt.font.TextAttribute;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.AffineTransform;
+import java.text.AttributedCharacterIterator;
+import java.text.AttributedString;
+import java.awt.font.*;
 public class RenderObject {
+	static int numRenderObjectsCreated=0;
+	private static final 
+    Hashtable<TextAttribute, Object> bottomDisplayStringAttributes =
+       new Hashtable<TextAttribute, Object>();
+	static {
+		bottomDisplayStringAttributes.put(TextAttribute.FAMILY, "Serif");
+		bottomDisplayStringAttributes.put(TextAttribute.SIZE, 10);
+		//idStringAttributes.put(TextAttribute.WEIGHT, 1);
+		//idStringAttributes.put(TextAttribute.BACKGROUND, Color.WHITE);
+	}
+	AttributedCharacterIterator bottomDisplayParagraph;
+	int id;
 	double x; //actual location of center of ellipse
 	double y;
 	double drawLocationX;//location in pixels on monitor
@@ -32,8 +50,12 @@ public class RenderObject {
 		this.color=Color.black;
 		this.ellipse = new Ellipse2D.Double();
 		this.targettingCircle = new Ellipse2D.Double();
-		this.name = "Test Label";
-		this.description = "\nTest Description\nNext Line";
+		this.description = "Test Description";
+		this.id=numRenderObjectsCreated;
+		numRenderObjectsCreated++;
+		this.name = "Test ID:" + id;
+		AttributedString bottomDisplayString = new AttributedString("hahahaaaahahahahID: "+id,bottomDisplayStringAttributes);
+		this.bottomDisplayParagraph=bottomDisplayString.getIterator();
 	}
 	
 	void setLocation(double x, double y){
