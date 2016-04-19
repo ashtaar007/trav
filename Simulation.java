@@ -12,7 +12,7 @@ public class Simulation{
 	Graphics2D g;
 	FontRenderContext frc;
 	private static final boolean test = false;
-	static JFrame mainFrame;
+	static Frame mainFrame;
 	static Camera camera;
 	private Timer timer;
 	static boolean isPaused;
@@ -31,8 +31,7 @@ public class Simulation{
 		GraphicsEnvironment env = GraphicsEnvironment.getLocalGraphicsEnvironment();
         GraphicsDevice device = env.getDefaultScreenDevice();
         GraphicsConfiguration gc = device.getDefaultConfiguration();
-        mainFrame = new JFrame(gc);
-        
+        mainFrame = new Frame(gc);
         mainFrame.setUndecorated(true);
         mainFrame.setIgnoreRepaint(true);
         device.setFullScreenWindow(mainFrame);
@@ -42,7 +41,6 @@ public class Simulation{
         
         camera = new Camera(bounds);
         BufferStrategy bufferStrategy = mainFrame.getBufferStrategy();
-        this.addEscapeListener(mainFrame);
         mainFrame.addKeyListener(camera);
         mouseManager = new MouseManager(this);
         mainFrame.addMouseListener(mouseManager);
@@ -260,19 +258,5 @@ public class Simulation{
             }
         });
 		
-	}
-	
-	public void addEscapeListener(JFrame mainframe) {
-	    ActionListener escListener = new ActionListener() {
-	        @Override
-	        public void actionPerformed(ActionEvent e) {
-	        	timer.stop();
-	        	mainframe.dispose();
-	        	System.exit(1);
-	        }
-	    };
-	    mainframe.getRootPane().registerKeyboardAction(escListener,
-	            KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0),
-	            JComponent.WHEN_IN_FOCUSED_WINDOW);
 	}
 }

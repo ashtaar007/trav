@@ -51,6 +51,9 @@ public class Camera implements KeyListener{
 		}
 	}
 	public void keyPressed(KeyEvent e) {
+		if(e.getKeyCode()==KeyEvent.VK_ESCAPE){
+        	System.exit(1);
+		}
 		
 		if(e.getKeyCode()==KeyEvent.VK_RIGHT){
 			isMovingRight=true;
