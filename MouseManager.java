@@ -24,17 +24,34 @@ public class MouseManager implements MouseListener, MouseMotionListener{
 	public void mousePressed(MouseEvent e) {
 		mouseInitialClickLocationX = e.getX();
 		mouseInitialClickLocationY = e.getY();
+		//loop through and check all menu buttons
+		if(e.getButton() == 1){
+			for (RectangleSwitch button : Simulation.buttons.values()) {
+				button.isBeingPushed=button.contains(mouseInitialClickLocationX,mouseInitialClickLocationY);
+			}
+		}
 	}
 	@Override
 	public void mouseReleased(MouseEvent e) {
 		mouseReleaseLocationX = e.getX();
 		mouseReleaseLocationY = e.getY();
+		//loop through and check all menu buttons
+		
 		int minX;
 		int maxX;
 		int minY;
 		int maxY;
 		RenderObject currentObject;
 		if(e.getButton() == 1){
+			for (RectangleSwitch button : Simulation.buttons.values()) {
+				if(button.isBeingPushed&&button.contains(mouseReleaseLocationX,mouseReleaseLocationY))
+						button.push();
+				button.isBeingPushed=false;
+			}
+			
+			
+			
+			
 			targetSimulation.selectedObjects.clear();
 			if(!isDragging){
 				if(e.getModifiers()==17){//M1+Shift

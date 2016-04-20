@@ -3,14 +3,17 @@ import java.awt.image.BufferStrategy;
 import java.text.AttributedCharacterIterator;
 import java.text.AttributedString;
 import java.util.ArrayList;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.Hashtable;
 
 import javax.swing.*;
 import java.awt.event.*;
 import java.awt.font.*;
+import java.awt.geom.Rectangle2D;
 public class Simulation{
-	Graphics2D g;
-	FontRenderContext frc;
+	static Graphics2D g;
+	static FontRenderContext frc;
 	private static final boolean test = false;
 	static Frame mainFrame;
 	static Camera camera;
@@ -18,8 +21,11 @@ public class Simulation{
 	static boolean isPaused;
 	static boolean isSpeedingUp;
 	static boolean isSlowingDown;
+	static BooleanObject isSetupMode = new BooleanObject(false);
+	static BooleanObject isShipBuilderScreen = new BooleanObject(false);
 	public static double timeFactor = 1;
-    public final static int delay = 8; // every .33 second
+    public final static int delay = 15; // every .33 second
+    public final static double calculationInterval = 5; // every .33 second
     static int i =0;
     static long lastTime;
     static MouseManager mouseManager;
@@ -27,6 +33,11 @@ public class Simulation{
     static GravityObject[] gravityObjects;
     ArrayList<RenderObject> selectedObjects;
     static Color myColor = new Color(128,0,128,255);
+    
+    static Map<String,RectangleSwitch> buttons = new HashMap<String,RectangleSwitch>();
+    
+    
+    
 	public Simulation(){
 		GraphicsEnvironment env = GraphicsEnvironment.getLocalGraphicsEnvironment();
         GraphicsDevice device = env.getDefaultScreenDevice();
@@ -40,6 +51,8 @@ public class Simulation{
         else mainFrame.createBufferStrategy(1);
         
         camera = new Camera(bounds);
+        this.initButtons(bounds);
+        
         BufferStrategy bufferStrategy = mainFrame.getBufferStrategy();
         mainFrame.addKeyListener(camera);
         mouseManager = new MouseManager(this);
@@ -58,9 +71,13 @@ public class Simulation{
             {
                 g = (Graphics2D)bufferStrategy.getDrawGraphics();
                 frc = g.getFontRenderContext();
+                long timeElapsed = System.currentTimeMillis()-lastTime;
+                lastTime += timeElapsed;
+                camera.updatePosition(timeElapsed);
+        		calculateSimulation(timeElapsed);
                 if (!bufferStrategy.contentsLost()) {
                     	//Draw Stuff Here
-                     drawStuff();
+                     drawStuff(timeElapsed);
                      bufferStrategy.show();
                      g.dispose();
                 }
@@ -75,45 +92,46 @@ public class Simulation{
 	
 	
 
-	public void drawStuff(){
-    	//draw background;
-		i++;
+	public void drawStuff(long timeElapsed){
 		g.setColor(Color.white);
 		if(!test)g.fillRect(0,0,camera.bounds.width, camera.bounds.height);
-		long timeElapsed = System.currentTimeMillis()-lastTime;
-		//System.out.println(timeElapsed);
-		camera.updatePosition(timeElapsed);
-		this.drawLine(g,-1000,0,1000,0,Color.red);
-		this.drawLine(g,0,-1000,0,1000,Color.red);
-		double factoredTimeElapsed;
-		if(this.isPaused){
-			factoredTimeElapsed=0;
+		this.drawSimulation(timeElapsed);
+		for (RectangleSwitch button : buttons.values()) {
+			button.display(g);
 		}
-		else{
-			factoredTimeElapsed=timeElapsed*timeFactor;
+	}
+	static void calculateSimulation(long timeElapsed){
+		double factoredTimeElapsed=isPaused?0:timeElapsed*timeFactor;
+		if(factoredTimeElapsed>100000) {timeFactor = 1; return;}
+		double timeLeft=factoredTimeElapsed;
+		double dt = Math.min(calculationInterval, timeLeft);
+		while(timeLeft>0){
+			timeLeft-=calculationInterval;
+			calculateThings(dt);
 		}
+	}
+	static void calculateThings(double dt){
 		boolean deleteObject = false;
 		for (int i = 0; i < renderObjects.size(); i++) {
-			deleteObject = renderObjects.get(i).updateObject(factoredTimeElapsed, gravityObjects);
+			deleteObject = renderObjects.get(i).updateObject(dt, gravityObjects);
 			if(deleteObject){
 				renderObjects.remove(i);
 				i--;
-				continue;
 			}
-			this.drawRenderObject(renderObjects.get(i), g);
-            
-
-            //g.drawLine((int)p.getCenterX() - 5, (int)p.getCenterY(), (int)p.getCenterX() + 5, (int)p.getCenterY());
-
-            //g.drawLine((int)p.getCenterX(), (int)p.getCenterY() -5, (int)p.getCenterX(), (int)p.getCenterY() + 5);
-            
-            //g.fill(p);
-	
-            //g.drawString("P"+ i + "(" + p.getCenterX() + "," + p.getCenterY() + ")", (float) p.getMaxX(), (float) p.getMaxY());
-
         }
 		for (int i = 0; i < gravityObjects.length; i++) {
-			gravityObjects[i].updateObject(factoredTimeElapsed, gravityObjects);
+			gravityObjects[i].updateObject(dt, gravityObjects);
+		}
+	}
+	void drawSimulation(long timeElapsed){
+		this.drawLine(g,-1000,0,1000,0,Color.red);
+		this.drawLine(g,0,-1000,0,1000,Color.red);
+		
+		
+		for (int i = 0; i < renderObjects.size(); i++) {
+			this.drawRenderObject(renderObjects.get(i), g);
+        }
+		for (int i = 0; i < gravityObjects.length; i++) {
 			this.drawRenderObject(gravityObjects[i], g);
 		}
 		for (int i = 0; i < renderObjects.size(); i++) {
@@ -145,7 +163,6 @@ public class Simulation{
 					mouseManager.mouseCurrentLocationX,
 					mouseManager.mouseCurrentLocationY);			
 		}
-		lastTime += timeElapsed;
 		this.displaySelectedShipMenu();
 	}
 	void displaySelectedShipMenu(){
@@ -162,18 +179,29 @@ public class Simulation{
 			g.setColor(Color.cyan);
 			g.drawLine(currentX, topOfMenuY, currentX, bounds.height);
 			g.setColor(Color.green);
-			this.displayWrappedText(this.selectedObjects.get(i).bottomDisplayParagraph,currentX,topOfMenuY,widthPerBox);
+			this.displayWrappedText(this.selectedObjects.get(i).bottomDisplayParagraph,currentX,topOfMenuY,widthPerBox, false);
 		}
 		
 	}
-	public void displayWrappedText(AttributedCharacterIterator paragraph, int x, int y,int width){
+	void initButtons(Rectangle bounds){
+		int x = (int)(.95*bounds.width);
+		int y = (int)(.95*bounds.height);
+		int width = (int)(.05*bounds.width);
+		int height = (int)(.025*bounds.height);
+	    buttons.put("Setup",new RectangleSwitch(x,y,width,height,isSetupMode,"Play","Setup"));
+		y = (int)(.975*bounds.height);
+		buttons.put("Builder",new RectangleSwitch(x,y,width,height,isShipBuilderScreen,"Simulator","Builder"));
+	}
+	public static void displayWrappedText(AttributedCharacterIterator paragraph, int x, int y,int width, boolean isCentered){
 		int paragraphEnd = paragraph.getEndIndex();
 		LineBreakMeasurer lineMeasurer = new LineBreakMeasurer(paragraph, frc);
 		float breakWidth = width-2;
         float drawPosY = y;
+        float drawPosX;
         while (lineMeasurer.getPosition() < paragraphEnd) {
         	TextLayout layout = lineMeasurer.nextLayout(breakWidth);
-        	float drawPosX = x+2;
+        	if(isCentered) drawPosX = x+1+(float)((breakWidth-layout.getBounds().getWidth())/2);
+        	else drawPosX = x+2;
         	drawPosY += layout.getAscent();
         	layout.draw(g, drawPosX, drawPosY);
         	drawPosY += layout.getDescent() + layout.getLeading();
