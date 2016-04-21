@@ -11,7 +11,7 @@ import javax.swing.*;
 import java.awt.event.*;
 import java.awt.font.*;
 import java.awt.geom.Rectangle2D;
-public class Simulation{
+public class Simulation{//TODO: Create text input boxes
 	static Graphics2D g;
 	static FontRenderContext frc;
 	private static final boolean test = false;
@@ -26,7 +26,6 @@ public class Simulation{
 	public static double timeFactor = 1;
     public final static int delay = 15; // every .33 second
     public final static double calculationInterval = 5; // every .33 second
-    static int i =0;
     static long lastTime;
     static MouseManager mouseManager;
     static ArrayList<RenderObject> renderObjects;
@@ -34,8 +33,10 @@ public class Simulation{
     ArrayList<RenderObject> selectedObjects;
     static Color myColor = new Color(128,0,128,255);
     
+    public static final Map<String,DropDownMenuButton> menuButtonsDefault = new HashMap<String,DropDownMenuButton>();
     static Map<String,RectangleSwitch> buttons = new HashMap<String,RectangleSwitch>();
-    
+    static Map<String,DropDownMenu> menus = new HashMap<String,DropDownMenu>();
+    static Map<String,DropDownMenuButton> menuButtons = menuButtonsDefault; //displays active Menu Buttons if not Default
     
     
 	public Simulation(){
@@ -97,6 +98,12 @@ public class Simulation{
 		if(!test)g.fillRect(0,0,camera.bounds.width, camera.bounds.height);
 		this.drawSimulation(timeElapsed);
 		for (RectangleSwitch button : buttons.values()) {
+			button.display(g);
+		}
+		for (DropDownMenu menu : menus.values()) {
+			menu.display(g);
+		}
+		for (DropDownMenuButton button : menuButtons.values()) {
 			button.display(g);
 		}
 	}
@@ -165,10 +172,12 @@ public class Simulation{
 		}
 		this.displaySelectedShipMenu();
 	}
+	
 	void displaySelectedShipMenu(){
 		Rectangle bounds = camera.bounds;
 		g.setColor(Color.cyan);
 		int topOfMenuY = (int) (bounds.height*0.95);
+		int height = bounds.height-topOfMenuY;
 		//g.fillRect(0, topOfMenuY, bounds.width, bounds.height);
 		int currentX=0;
 		int widthPerBox = (int)(0.03*bounds.width);
@@ -179,7 +188,7 @@ public class Simulation{
 			g.setColor(Color.cyan);
 			g.drawLine(currentX, topOfMenuY, currentX, bounds.height);
 			g.setColor(Color.green);
-			this.displayWrappedText(this.selectedObjects.get(i).bottomDisplayParagraph,currentX,topOfMenuY,widthPerBox, false);
+			this.displayWrappedText(this.selectedObjects.get(i).bottomDisplayParagraph,currentX,topOfMenuY,widthPerBox,height, false);
 		}
 		
 	}
@@ -191,19 +200,27 @@ public class Simulation{
 	    buttons.put("Setup",new RectangleSwitch(x,y,width,height,isSetupMode,"Play","Setup"));
 		y = (int)(.975*bounds.height);
 		buttons.put("Builder",new RectangleSwitch(x,y,width,height,isShipBuilderScreen,"Simulator","Builder"));
+		x = (int)(.45*bounds.width);
+		y = (int)(.25*bounds.height);
+		menus.put("testMenu", new DropDownMenu(x,y,width,height,"testMenu"));
+		menus.get("testMenu").add("First lolololool");
+		menus.get("testMenu").add("Second");
 	}
-	public static void displayWrappedText(AttributedCharacterIterator paragraph, int x, int y,int width, boolean isCentered){
+	public static void displayWrappedText(AttributedCharacterIterator paragraph, int x, int y,int width,int height, boolean isCentered){
 		int paragraphEnd = paragraph.getEndIndex();
 		LineBreakMeasurer lineMeasurer = new LineBreakMeasurer(paragraph, frc);
 		float breakWidth = width-2;
         float drawPosY = y;
         float drawPosX;
+        float maxY = y+height;
         while (lineMeasurer.getPosition() < paragraphEnd) {
         	TextLayout layout = lineMeasurer.nextLayout(breakWidth);
         	if(isCentered) drawPosX = x+1+(float)((breakWidth-layout.getBounds().getWidth())/2);
         	else drawPosX = x+2;
         	drawPosY += layout.getAscent();
-        	layout.draw(g, drawPosX, drawPosY);
+        	if(drawPosY+layout.getDescent()<=maxY)
+        		layout.draw(g, drawPosX, drawPosY);
+        	else break;
         	drawPosY += layout.getDescent() + layout.getLeading();
         }
 		

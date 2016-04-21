@@ -45,8 +45,12 @@ public class MouseManager implements MouseListener, MouseMotionListener{
 		if(e.getButton() == 1){
 			for (RectangleSwitch button : Simulation.buttons.values()) {
 				if(button.isBeingPushed&&button.contains(mouseReleaseLocationX,mouseReleaseLocationY))
-						button.push();
+					button.push();
 				button.isBeingPushed=false;
+			}
+			for (DropDownMenuButton button : Simulation.menuButtons.values()) {
+				if(button.isBeingPushed&&button.contains(mouseReleaseLocationX,mouseReleaseLocationY))
+					button.push();
 			}
 			
 			
@@ -142,5 +146,11 @@ public class MouseManager implements MouseListener, MouseMotionListener{
 	}
 	@Override
 	public void mouseMoved(MouseEvent e) {
+		mouseCurrentLocationX = e.getX();
+		mouseCurrentLocationY = e.getY();
+		for (DropDownMenu menu : Simulation.menus.values()) {
+			menu.isBeingPushed=menu.contains(mouseCurrentLocationX,mouseCurrentLocationY);
+			Simulation.menuButtons=menu.isBeingPushed?menu.map:Simulation.menuButtonsDefault;
+		}
 	}
 }
