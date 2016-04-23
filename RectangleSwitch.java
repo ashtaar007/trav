@@ -1,5 +1,6 @@
 import java.awt.*;
-import java.awt.font.TextAttribute;
+import java.awt.font.*;
+import java.awt.geom.Rectangle2D;
 import java.text.AttributedCharacterIterator;
 import java.text.AttributedString;
 import java.util.HashMap;
@@ -21,7 +22,7 @@ class Button extends Rectangle{
 		       new Hashtable<TextAttribute, Object>();
 	static {
 		textAttributes.put(TextAttribute.FAMILY, "Serif");
-		textAttributes.put(TextAttribute.SIZE, 18);
+		textAttributes.put(TextAttribute.SIZE, 14);
 	}
 	public final static Color baseColor=Color.darkGray;
 	public final static Color pushedColor=Color.blue;
@@ -41,11 +42,84 @@ class Button extends Rectangle{
 		g.setColor(isBeingPushed?pushedColor:baseColor);
 		g.fill(this);
 		g.setColor(textColor);
-		Simulation.displayWrappedText(title,x,y,width,height, true);
+		Simulation.displayWrappedText(title,this, true, true);
 		g.setColor(borderColor);
 		g.draw(this);
 	}
 	public void push(){
+	}
+}
+class TextBox extends Button{
+	//class can't have it's own linemeasurer, because need new frc each frame
+	final static Rectangle extraRectangle = new Rectangle();
+	int lastMouseClickX = 0;
+	int lastMouseClickY = 0;
+	public TextBox(int x, int y, int width, int height, String title){
+		super(x,y,width,height,title);
+	}
+	public void display(Graphics2D g){
+		g.setColor(isBeingPushed?baseColor:baseColor);
+		g.fill(this);
+		g.setColor(textColor);
+		this.displayWrappedEditableText(true,true);
+		g.setColor(borderColor);
+		g.draw(this);
+		if(isBeingPushed){//display Carat
+			
+		}
+	}
+	public void displayWrappedEditableText(boolean widthCentered, boolean heightCentered){
+		Graphics2D g = Simulation.g;
+		int paragraphEnd = title.getEndIndex();
+		LineBreakMeasurer lineMeasurer = new LineBreakMeasurer(title, Simulation.frc);
+		float breakWidth = width-2;
+        float drawPosY = y;
+        float drawPosX;
+        float maxY = y+height;
+        float drawPosXInitial =widthCentered?x+1:x+2;
+        float totalLayoutHeight=0;
+        float nextHeight=0;
+        if(heightCentered){
+	        while (lineMeasurer.getPosition() < paragraphEnd) {
+	        	TextLayout layout = lineMeasurer.nextLayout(breakWidth);
+	        	nextHeight=layout.getAscent()+layout.getLeading()+layout.getDescent();
+	        	if(totalLayoutHeight+nextHeight>height)break;
+	        	totalLayoutHeight+=nextHeight;
+	        	
+	        }
+	        lineMeasurer.setPosition(0);
+	        drawPosY += (height - totalLayoutHeight)/2;
+        }
+        int i=0;
+        while (lineMeasurer.getPosition() < paragraphEnd) {
+        	i++;
+        	g.setColor(textColor);
+        	TextLayout layout = lineMeasurer.nextLayout(breakWidth);
+        	if(widthCentered) drawPosX = drawPosXInitial+(float)((breakWidth-layout.getBounds().getWidth())/2);
+        	else drawPosX = drawPosXInitial;
+        	drawPosY += layout.getAscent();
+        	if(drawPosY+layout.getDescent()<=maxY){
+        		
+        		layout.draw(g, drawPosX, drawPosY);;
+        		g.setColor(Color.red);
+        		extraRectangle.setFrame(x,(int)(drawPosY-layout.getAscent()),width,(int)(layout.getAscent()+layout.getDescent()));
+        		if(extraRectangle.contains(lastMouseClickX,lastMouseClickY)){
+	        		TextHitInfo hit = layout.hitTestChar(lastMouseClickX-drawPosX,lastMouseClickY-drawPosY);
+	        		Shape caret = layout.getCaretShape(hit);
+	        		g.translate(drawPosX, drawPosY);
+	        		g.draw(caret);
+	        		g.translate(-drawPosX, -drawPosY);
+        		}
+        	}
+        	else break;
+        	drawPosY += layout.getDescent() + layout.getLeading();
+        	
+        	
+        }
+	}
+	public void setCarat(int mouseReleaseLocationX, int mouseReleaseLocationY){
+		lastMouseClickX = mouseReleaseLocationX;
+		lastMouseClickY = mouseReleaseLocationY;
 	}
 }
 class DropDownMenuButton extends Button{

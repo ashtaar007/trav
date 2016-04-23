@@ -12,6 +12,7 @@ import java.awt.event.*;
 import java.awt.font.*;
 import java.awt.geom.Rectangle2D;
 public class Simulation{//TODO: Create text input boxes
+	public static final Rectangle extraRectangle = new Rectangle();
 	static Graphics2D g;
 	static FontRenderContext frc;
 	private static final boolean test = false;
@@ -37,6 +38,7 @@ public class Simulation{//TODO: Create text input boxes
     static Map<String,RectangleSwitch> buttons = new HashMap<String,RectangleSwitch>();
     static Map<String,DropDownMenu> menus = new HashMap<String,DropDownMenu>();
     static Map<String,DropDownMenuButton> menuButtons = menuButtonsDefault; //displays active Menu Buttons if not Default
+    static Map<String,TextBox> textBoxes = new HashMap<String,TextBox>();
     
     
 	public Simulation(){
@@ -97,15 +99,7 @@ public class Simulation{//TODO: Create text input boxes
 		g.setColor(Color.white);
 		if(!test)g.fillRect(0,0,camera.bounds.width, camera.bounds.height);
 		this.drawSimulation(timeElapsed);
-		for (RectangleSwitch button : buttons.values()) {
-			button.display(g);
-		}
-		for (DropDownMenu menu : menus.values()) {
-			menu.display(g);
-		}
-		for (DropDownMenuButton button : menuButtons.values()) {
-			button.display(g);
-		}
+		this.displayButtons();
 	}
 	static void calculateSimulation(long timeElapsed){
 		double factoredTimeElapsed=isPaused?0:timeElapsed*timeFactor;
@@ -188,10 +182,14 @@ public class Simulation{//TODO: Create text input boxes
 			g.setColor(Color.cyan);
 			g.drawLine(currentX, topOfMenuY, currentX, bounds.height);
 			g.setColor(Color.green);
-			this.displayWrappedText(this.selectedObjects.get(i).bottomDisplayParagraph,currentX,topOfMenuY,widthPerBox,height, false);
+			RenderObject currentObject = this.selectedObjects.get(i);
+			extraRectangle.setBounds(currentX, topOfMenuY, widthPerBox, height);
+			this.displayWrappedText(currentObject.bottomDisplayParagraph,extraRectangle, false,true);
 		}
 		
 	}
+	
+	//BUTTON METHODS
 	void initButtons(Rectangle bounds){
 		int x = (int)(.95*bounds.width);
 		int y = (int)(.95*bounds.height);
@@ -205,25 +203,94 @@ public class Simulation{//TODO: Create text input boxes
 		menus.put("testMenu", new DropDownMenu(x,y,width,height,"testMenu"));
 		menus.get("testMenu").add("First lolololool");
 		menus.get("testMenu").add("Second");
+		x = (int)(.65*bounds.width);
+		textBoxes.put("box", new TextBox(x,y,width,height*4,
+				"getLogicalRangesForVisualSelection(TextHitInfo firstEndpoint, TextHitInfo secondEndpoint) Returns the logical ranges of text corresponding to a visual selection."
+				));
 	}
-	public static void displayWrappedText(AttributedCharacterIterator paragraph, int x, int y,int width,int height, boolean isCentered){
+	void displayButtons(){
+		for (RectangleSwitch button : buttons.values()) {
+			button.display(g);
+		}
+		for (DropDownMenu menu : menus.values()) {
+			menu.display(g);
+		}
+		for (DropDownMenuButton button : menuButtons.values()) {
+			button.display(g);
+		}
+		for (TextBox textBox : textBoxes.values()) {
+			textBox.display(g);
+		}
+	}
+	public static void checkButtonsPressed(int mouseInitialClickLocationX, int mouseInitialClickLocationY){
+		for (RectangleSwitch button : buttons.values()) {
+			button.isBeingPushed=button.contains(mouseInitialClickLocationX,mouseInitialClickLocationY);
+		}
+		for (TextBox textBox : textBoxes.values()) {
+			textBox.isBeingPushed=textBox.contains(mouseInitialClickLocationX,mouseInitialClickLocationY);
+		}
+	}
+	public static void checkButtonsReleased(int mouseReleaseLocationX, int mouseReleaseLocationY){
+		for (RectangleSwitch button : buttons.values()) {
+			if(button.isBeingPushed&&button.contains(mouseReleaseLocationX,mouseReleaseLocationY))
+				button.push();
+			button.isBeingPushed=false;
+		}
+		for (TextBox textBox : textBoxes.values()) {
+			if(textBox.isBeingPushed&&textBox.contains(mouseReleaseLocationX,mouseReleaseLocationY))
+				textBox.setCarat(mouseReleaseLocationX,mouseReleaseLocationY);
+		}
+		for (DropDownMenuButton button : menuButtons.values()) {
+			if(button.isBeingPushed&&button.contains(mouseReleaseLocationX,mouseReleaseLocationY))
+				button.push();
+		}
+	}
+	public static void checkButtonsMoved(int mouseCurrentLocationX, int mouseCurrentLocationY){
+		for (DropDownMenu menu : menus.values()) {
+			menu.isBeingPushed=menu.contains(mouseCurrentLocationX,mouseCurrentLocationY);
+			menuButtons=menu.isBeingPushed?menu.map:menuButtonsDefault;
+		}
+		
+	}
+	public static TextBox getPressedTextBox(){
+		for (TextBox textBox : textBoxes.values()) {
+			if (textBox.isBeingPushed)
+				return textBox;
+		}
+		return null;
+	}
+	public static void displayWrappedText(AttributedCharacterIterator paragraph, Rectangle rect, boolean widthCentered, boolean heightCentered){
 		int paragraphEnd = paragraph.getEndIndex();
 		LineBreakMeasurer lineMeasurer = new LineBreakMeasurer(paragraph, frc);
-		float breakWidth = width-2;
-        float drawPosY = y;
+		float breakWidth = rect.width-2;
+        float drawPosY = rect.y;
         float drawPosX;
-        float maxY = y+height;
+        float maxY = rect.y+rect.height;
+        float height = rect.height;
+        float drawPosXInitial =widthCentered?rect.x+1:rect.x+2;
+        float totalLayoutHeight=0;
+        float nextHeight=0;
+        if(heightCentered){
+	        while (lineMeasurer.getPosition() < paragraphEnd) {
+	        	TextLayout layout = lineMeasurer.nextLayout(breakWidth);
+	        	nextHeight=layout.getAscent()+layout.getLeading()+layout.getDescent();
+	        	if(totalLayoutHeight+nextHeight>height)break;
+	        	totalLayoutHeight+=nextHeight;
+	        	
+	        }
+	        lineMeasurer.setPosition(0);
+	        drawPosY += (height - totalLayoutHeight)/2;
+        }
         while (lineMeasurer.getPosition() < paragraphEnd) {
         	TextLayout layout = lineMeasurer.nextLayout(breakWidth);
-        	if(isCentered) drawPosX = x+1+(float)((breakWidth-layout.getBounds().getWidth())/2);
-        	else drawPosX = x+2;
+        	if(widthCentered) drawPosX = drawPosXInitial+(float)((breakWidth-layout.getBounds().getWidth())/2);
+        	else drawPosX = drawPosXInitial;
         	drawPosY += layout.getAscent();
         	if(drawPosY+layout.getDescent()<=maxY)
         		layout.draw(g, drawPosX, drawPosY);
         	else break;
         	drawPosY += layout.getDescent() + layout.getLeading();
         }
-		
 	}
 
 	public void drawRenderObject(RenderObject obj, Graphics2D g){

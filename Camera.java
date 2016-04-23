@@ -25,61 +25,81 @@ public class Camera implements KeyListener{
 	}
 	
 	public void keyReleased(KeyEvent e) {
-		if(e.getKeyCode()==KeyEvent.VK_RIGHT){
+		
+		
+		//check if Text Box is pressed - if so, need to perform typing actions instead
+		//might be able to skip this as an optimization later
+		int keyCode = e.getKeyCode();
+		TextBox currentTextBox = Simulation.getPressedTextBox();
+		if(currentTextBox != null){
+			
+			return;
+		}
+		if(keyCode==KeyEvent.VK_RIGHT){
 			isMovingRight=false;
 		}
-		if(e.getKeyCode()==KeyEvent.VK_LEFT){
+		if(keyCode==KeyEvent.VK_LEFT){
 			isMovingLeft=false;
 		}
-		if(e.getKeyCode()==KeyEvent.VK_UP){
+		if(keyCode==KeyEvent.VK_UP){
 			isMovingUp=false;
 		}
-		if(e.getKeyCode()==KeyEvent.VK_DOWN){
+		if(keyCode==KeyEvent.VK_DOWN){
 			isMovingDown=false;
 		}
-		if(e.getKeyCode()==KeyEvent.VK_Z){
+		if(keyCode==KeyEvent.VK_Z){
 			isZoomingIn=false;
 		}
-		if(e.getKeyCode()==KeyEvent.VK_X){
+		if(keyCode==KeyEvent.VK_X){
 			isZoomingOut=false;
 		}
-		if(e.getKeyCode()==KeyEvent.VK_C){
+		if(keyCode==KeyEvent.VK_C){
 			Simulation.isSpeedingUp=false;
 		}
-		if(e.getKeyCode()==KeyEvent.VK_V){
+		if(keyCode==KeyEvent.VK_V){
 			Simulation.isSlowingDown=false;
 		}
 	}
 	public void keyPressed(KeyEvent e) {
-		if(e.getKeyCode()==KeyEvent.VK_ESCAPE){
+		//check if Text Box is pressed - if so, need to perform typing actions instead
+		int keyCode = e.getKeyCode();
+		if(keyCode==KeyEvent.VK_ESCAPE){
         	System.exit(1);
 		}
+		if(((int)e.getKeyChar()) != 65535 &&keyCode!=127&&keyCode!=8&&keyCode!=92&&keyCode!=10)
+			System.out.println(e.getKeyChar()+" Char code: " + (int)e.getKeyChar() + " Event: "+e);
+		TextBox currentTextBox = Simulation.getPressedTextBox();
+		if(currentTextBox != null){
+			//Do text actions
+			return;
+		}
 		
-		if(e.getKeyCode()==KeyEvent.VK_RIGHT){
+		
+		if(keyCode==KeyEvent.VK_RIGHT){
 			isMovingRight=true;
 		}
-		if(e.getKeyCode()==KeyEvent.VK_LEFT){
+		if(keyCode==KeyEvent.VK_LEFT){
 			isMovingLeft=true;
 		}
-		if(e.getKeyCode()==KeyEvent.VK_UP){
+		if(keyCode==KeyEvent.VK_UP){
 			isMovingUp=true;
 		}
-		if(e.getKeyCode()==KeyEvent.VK_DOWN){
+		if(keyCode==KeyEvent.VK_DOWN){
 			isMovingDown=true;
 		}
-		if(e.getKeyCode()==KeyEvent.VK_Z){
+		if(keyCode==KeyEvent.VK_Z){
 			isZoomingIn=true;
 		}
-		if(e.getKeyCode()==KeyEvent.VK_X){
+		if(keyCode==KeyEvent.VK_X){
 			isZoomingOut=true;
 		}
-		if(e.getKeyCode()==KeyEvent.VK_C){
+		if(keyCode==KeyEvent.VK_C){
 			Simulation.isSpeedingUp=true;
 		}
-		if(e.getKeyCode()==KeyEvent.VK_V){
+		if(keyCode==KeyEvent.VK_V){
 			Simulation.isSlowingDown=true;
 		}
-		if(e.getKeyCode()==KeyEvent.VK_SPACE){
+		if(keyCode==KeyEvent.VK_SPACE){
 			Simulation.isPaused=!Simulation.isPaused;
 		}
 		

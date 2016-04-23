@@ -26,9 +26,7 @@ public class MouseManager implements MouseListener, MouseMotionListener{
 		mouseInitialClickLocationY = e.getY();
 		//loop through and check all menu buttons
 		if(e.getButton() == 1){
-			for (RectangleSwitch button : Simulation.buttons.values()) {
-				button.isBeingPushed=button.contains(mouseInitialClickLocationX,mouseInitialClickLocationY);
-			}
+			Simulation.checkButtonsPressed(mouseInitialClickLocationX, mouseInitialClickLocationY);
 		}
 	}
 	@Override
@@ -43,19 +41,7 @@ public class MouseManager implements MouseListener, MouseMotionListener{
 		int maxY;
 		RenderObject currentObject;
 		if(e.getButton() == 1){
-			for (RectangleSwitch button : Simulation.buttons.values()) {
-				if(button.isBeingPushed&&button.contains(mouseReleaseLocationX,mouseReleaseLocationY))
-					button.push();
-				button.isBeingPushed=false;
-			}
-			for (DropDownMenuButton button : Simulation.menuButtons.values()) {
-				if(button.isBeingPushed&&button.contains(mouseReleaseLocationX,mouseReleaseLocationY))
-					button.push();
-			}
-			
-			
-			
-			
+			Simulation.checkButtonsReleased(mouseReleaseLocationX,mouseReleaseLocationY);
 			targetSimulation.selectedObjects.clear();
 			if(!isDragging){
 				if(e.getModifiers()==17){//M1+Shift
@@ -148,9 +134,7 @@ public class MouseManager implements MouseListener, MouseMotionListener{
 	public void mouseMoved(MouseEvent e) {
 		mouseCurrentLocationX = e.getX();
 		mouseCurrentLocationY = e.getY();
-		for (DropDownMenu menu : Simulation.menus.values()) {
-			menu.isBeingPushed=menu.contains(mouseCurrentLocationX,mouseCurrentLocationY);
-			Simulation.menuButtons=menu.isBeingPushed?menu.map:Simulation.menuButtonsDefault;
-		}
+		Simulation.checkButtonsMoved(mouseCurrentLocationX,mouseCurrentLocationY);
+		
 	}
 }

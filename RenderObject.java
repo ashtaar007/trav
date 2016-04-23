@@ -54,7 +54,7 @@ public class RenderObject {
 		this.id=numRenderObjectsCreated;
 		numRenderObjectsCreated++;
 		this.name = "Test ID:" + id;
-		AttributedString bottomDisplayString = new AttributedString("hahahaaaahahahahID: "+id,bottomDisplayStringAttributes);
+		AttributedString bottomDisplayString = new AttributedString("hahahaaaaahahahahID: "+id,bottomDisplayStringAttributes);
 		this.bottomDisplayParagraph=bottomDisplayString.getIterator();
 	}
 	
