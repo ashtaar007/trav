@@ -4,6 +4,7 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.text.AttributedCharacterIterator;
 import java.text.AttributedString;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Map;
@@ -50,117 +51,7 @@ class Button extends Rectangle{
 	public void push(){
 	}
 }
-class TextBox extends Button{
-	//class can't have it's own linemeasurer, because need new frc each frame
-	final static Rectangle extraRectangle = new Rectangle();
-	final static Point2D extraPoint = new Point();
-	int lastMouseClickX = 0;
-	int lastMouseClickY = 0;
-	boolean caretNeedsMouseClickedUpdate = false;
-	String titleText;
-	int caretIndex=0;
-	
-	public TextBox(int x, int y, int width, int height, String title){
-		super(x,y,width,height,title);
-		this.titleText = title;
-	}
-	public void reconstructTitle(){
-		this.title=(new AttributedString(titleText,textAttributes)).getIterator();
-	}
-	public void display(Graphics2D g){
-		g.setColor(isBeingPushed?baseColor:baseColor);
-		g.fill(this);
-		g.setColor(textColor);
-		this.displayWrappedEditableText(true,true);
-		g.setColor(borderColor);
-		g.draw(this);
-		if(isBeingPushed){//display Carat
-			
-		}
-	}
-	public void displayWrappedEditableText(boolean widthCentered, boolean heightCentered){
-		Graphics2D g = Simulation.g;
-		int paragraphEnd = title.getEndIndex();
-		LineBreakMeasurer lineMeasurer = new LineBreakMeasurer(title, Simulation.frc);
-		float breakWidth = width-2;
-        float drawPosY = y;
-        float drawPosX;
-        float maxY = y+height;
-        float drawPosXInitial =widthCentered?x+1:x+2;
-        float totalLayoutHeight=0;
-        float nextHeight=0;
-        int currentLayoutStartIndex;//inclusive
-        int currentLayoutEndIndex;//not inclusive
-        if(heightCentered){
-	        while (lineMeasurer.getPosition() < paragraphEnd) {
-	        	TextLayout layout = lineMeasurer.nextLayout(breakWidth);
-	        	nextHeight=layout.getAscent()+layout.getLeading()+layout.getDescent();
-	        	if(totalLayoutHeight+nextHeight>height)break;
-	        	totalLayoutHeight+=nextHeight;
-	        	
-	        }
-	        lineMeasurer.setPosition(0);
-	        drawPosY += (height - totalLayoutHeight)/2;
-        }
-        int i=0;
-        //System.out.println("Str length: " + titleText.length() + " AttrIterator length: " + paragraphEnd);
-        currentLayoutStartIndex = 0;
-        int clickedHitLocation;
-        while (lineMeasurer.getPosition() < paragraphEnd) {
-        	currentLayoutStartIndex = lineMeasurer.getPosition();
-        	i++;
-        	g.setColor(textColor);
-        	currentLayoutStartIndex = lineMeasurer.getPosition();
-        	TextLayout layout = lineMeasurer.nextLayout(breakWidth);
-        	currentLayoutEndIndex = lineMeasurer.getPosition();
-        	//System.out.println(lineMeasurer.getPosition() + " : " + titleText.charAt(lineMeasurer.getPosition()));
-        	if(widthCentered) drawPosX = drawPosXInitial+(float)((breakWidth-layout.getBounds().getWidth())/2);
-        	else drawPosX = drawPosXInitial;
-        	drawPosY += layout.getAscent();
-        	if(drawPosY+layout.getDescent()<=maxY){
-        		
-        		layout.draw(g, drawPosX, drawPosY);;
-        		if(caretNeedsMouseClickedUpdate){
-        			g.setColor(Color.red);
-        			extraRectangle.setFrame(x,(int)(drawPosY-layout.getAscent()),width,(int)(layout.getAscent()+layout.getDescent()));
-        			if(extraRectangle.contains(lastMouseClickX,lastMouseClickY)){
-        				TextHitInfo hit = layout.hitTestChar(lastMouseClickX-drawPosX,lastMouseClickY-drawPosY);
-        				layout.hitToPoint(hit, extraPoint);
-        				extraPoint.setLocation(extraPoint.getX()+drawPosX, extraPoint.getY()+drawPosY);
-        				caretIndex = currentLayoutStartIndex + hit.getInsertionIndex();
-        				caretNeedsMouseClickedUpdate = false;
-	        		}
-	        		
-        		}
-        		if(currentLayoutStartIndex<=caretIndex &&caretIndex<currentLayoutEndIndex){
-        			g.setColor(Color.red);
-        			
-        			
-        			int caretLayoutIndex = caretIndex-currentLayoutStartIndex;
-        			//update Caret Location -> needed for up arrow probably
-        			
-        			TextHitInfo hit = TextHitInfo.afterOffset(caretLayoutIndex);
-        			layout.hitToPoint(hit, extraPoint);
-    				extraPoint.setLocation(extraPoint.getX()+drawPosX, extraPoint.getY()+drawPosY);
-        			
-        			Shape[] caret = layout.getCaretShapes(caretLayoutIndex);
-	        		g.translate(drawPosX, drawPosY);
-	        		g.draw(caret[0]);
-	        		g.translate(-drawPosX, -drawPosY);
-        		}
-        	}
-        	else break;
-        	drawPosY += layout.getDescent() + layout.getLeading();
-        	
-        	
-        }
-	}
-	public void setLastClick(int mouseReleaseLocationX, int mouseReleaseLocationY){
-		lastMouseClickX = mouseReleaseLocationX;
-		lastMouseClickY = mouseReleaseLocationY;
-		caretNeedsMouseClickedUpdate = true;
-	}
-}
+
 class DropDownMenuButton extends Button{
 	final static Color textColor = Color.red;
 	public DropDownMenuButton(int x, int y, int width, int height, String title){
@@ -222,6 +113,7 @@ public class RectangleSwitch extends Button{
 		screenControl.value=!screenControl.value;
 	}
 }
+
 class BooleanObject{
 	boolean value;
 	public BooleanObject(boolean value){

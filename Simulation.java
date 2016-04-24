@@ -205,7 +205,8 @@ public class Simulation{//TODO: Create text input boxes
 		menus.get("testMenu").add("Second");
 		x = (int)(.65*bounds.width);
 		textBoxes.put("box", new TextBox(x,y,width,height*4,
-				"getLogicalRangesForVisualSelection(TextHitInfo firstEndpoint, TextHitInfo secondEndpoint) Returns the logical ranges of text corresponding to a visual selection."
+				//"getLogicalRangesForVisualSelection(TextHitInfo firstEndpoint, TextHitInfo secondEndpoint) Returns the logical ranges of text corresponding to a visual selection."
+				"Deviant                                       Art        Lol    Getpwndlolololololololooololoololololololoolololol"
 				));
 	}
 	void displayButtons(){

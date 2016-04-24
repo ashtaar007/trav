@@ -1,5 +1,14 @@
-import java.awt.*;
 import java.awt.event.*;
+import java.awt.*;
+import java.awt.font.*;
+import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
+import java.text.AttributedCharacterIterator;
+import java.text.AttributedString;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Hashtable;
+import java.util.Map;
 public class Camera implements KeyListener{
 	double x; //location of center of camera (used for transforms)
 	double y;
@@ -61,19 +70,59 @@ public class Camera implements KeyListener{
 		}
 	}
 	public void keyPressed(KeyEvent e) {
+		// Turn . -> `, turn spaces into periods, reverse when displaying
+		
 		//check if Text Box is pressed - if so, need to perform typing actions instead
 		int keyCode = e.getKeyCode();
 		if(keyCode==KeyEvent.VK_ESCAPE){
         	System.exit(1);
 		}
+
 		TextBox currentTextBox = Simulation.getPressedTextBox();
 		if(currentTextBox != null){
+			//System.out.println(e.getKeyChar()+" Char code: " + (int)e.getKeyChar() + " Event: "+e);
+			String currentString = currentTextBox.titleText;
+			if(keyCode==KeyEvent.VK_F1){
+	        	System.out.println("X"+currentString+"X");
+			}
 			if(((int)e.getKeyChar()) != 65535 &&keyCode!=127&&keyCode!=8&&keyCode!=92&&keyCode!=10){
-				System.out.println(e.getKeyChar()+" Char code: " + (int)e.getKeyChar() + " Event: "+e);
-				String currentString = currentTextBox.titleText;
-				currentTextBox.titleText = currentString.substring(0, currentTextBox.caretIndex).concat(""+e.getKeyChar())
-						.concat(currentString.substring(currentTextBox.caretIndex));
-				currentTextBox.reconstructTitle();
+				if(keyCode==KeyEvent.VK_SPACE&&(currentTextBox.caretIndex>0
+						&&currentTextBox.titleText.charAt(currentTextBox.caretIndex-1)==' ')||
+						(currentTextBox.caretIndex<currentTextBox.titleText.length()&&
+								currentTextBox.titleText.charAt(currentTextBox.caretIndex)==' ')){
+					return;
+				}
+				currentTextBox.titleText = currentString.substring(0, currentTextBox.caretIndex)+e.getKeyChar()+
+						currentString.substring(currentTextBox.caretIndex);
+				currentTextBox.reconstructTitle(true);
+				currentTextBox.moveCaretRight();
+			}
+			ArrayList<LayoutContainer> layoutContainers = currentTextBox.layoutContainers;
+			if(keyCode==KeyEvent.VK_BACK_SPACE){
+				if(currentTextBox.caretIndex==0)
+					return;
+				currentTextBox.titleText = currentString.substring(0, currentTextBox.caretIndex-1)+
+						currentString.substring(currentTextBox.caretIndex);
+				currentTextBox.reconstructTitle(true);
+				currentTextBox.backspaceActions();
+			}
+			if(keyCode==KeyEvent.VK_END){
+				currentTextBox.titleText = currentString.substring(0, currentTextBox.caretIndex);
+				currentTextBox.reconstructTitle(false);
+				currentTextBox.endActions();
+				
+			}
+			if(keyCode==KeyEvent.VK_RIGHT){
+				currentTextBox.moveCaretRight();
+			}
+			if(keyCode==KeyEvent.VK_LEFT){
+				currentTextBox.moveCaretLeft();
+			}
+			if(keyCode==KeyEvent.VK_UP){
+				currentTextBox.moveCaretUp();
+			}
+			if(keyCode==KeyEvent.VK_DOWN){
+				currentTextBox.moveCaretDown();
 			}
 			return;
 		}
