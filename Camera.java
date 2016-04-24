@@ -66,11 +66,15 @@ public class Camera implements KeyListener{
 		if(keyCode==KeyEvent.VK_ESCAPE){
         	System.exit(1);
 		}
-		if(((int)e.getKeyChar()) != 65535 &&keyCode!=127&&keyCode!=8&&keyCode!=92&&keyCode!=10)
-			System.out.println(e.getKeyChar()+" Char code: " + (int)e.getKeyChar() + " Event: "+e);
 		TextBox currentTextBox = Simulation.getPressedTextBox();
 		if(currentTextBox != null){
-			//Do text actions
+			if(((int)e.getKeyChar()) != 65535 &&keyCode!=127&&keyCode!=8&&keyCode!=92&&keyCode!=10){
+				System.out.println(e.getKeyChar()+" Char code: " + (int)e.getKeyChar() + " Event: "+e);
+				String currentString = currentTextBox.titleText;
+				currentTextBox.titleText = currentString.substring(0, currentTextBox.caretIndex).concat(""+e.getKeyChar())
+						.concat(currentString.substring(currentTextBox.caretIndex));
+				currentTextBox.reconstructTitle();
+			}
 			return;
 		}
 		

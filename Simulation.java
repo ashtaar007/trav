@@ -238,7 +238,7 @@ public class Simulation{//TODO: Create text input boxes
 		}
 		for (TextBox textBox : textBoxes.values()) {
 			if(textBox.isBeingPushed&&textBox.contains(mouseReleaseLocationX,mouseReleaseLocationY))
-				textBox.setCarat(mouseReleaseLocationX,mouseReleaseLocationY);
+				textBox.setLastClick(mouseReleaseLocationX,mouseReleaseLocationY);
 		}
 		for (DropDownMenuButton button : menuButtons.values()) {
 			if(button.isBeingPushed&&button.contains(mouseReleaseLocationX,mouseReleaseLocationY))
