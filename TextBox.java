@@ -5,6 +5,7 @@ import java.awt.font.LineBreakMeasurer;
 import java.awt.font.TextHitInfo;
 import java.awt.font.TextLayout;
 import java.awt.geom.Point2D;
+import java.text.AttributedCharacterIterator;
 import java.text.AttributedString;
 import java.util.ArrayList;
 
@@ -26,10 +27,13 @@ class TextBox extends Button{
 	//class can't have it's own linemeasurer, because need new frc each frame
 	final static Rectangle extraRectangle = new Rectangle();
 	final static Point2D caretLocation = new Point();
+	final static AttributedCharacterIterator singleSpace = (new AttributedString(" ",textAttributes)).getIterator();
 	int lastMouseClickX = 0;
 	int lastMouseClickY = 0;
 	String titleText;
 	int caretIndex=0;
+	
+	
 	ArrayList<LayoutContainer> layoutContainers = new ArrayList<LayoutContainer>();
 	LayoutContainer caretContainer;
 	
@@ -45,7 +49,7 @@ class TextBox extends Button{
 		if(titleText.length()>0){
 			this.title=(new AttributedString(titleText,textAttributes)).getIterator();
 		}
-		updateLayouts(true,true);
+		updateLayouts(title,true,true);
 		updateCaretAttributesFromIndex();
 		useLeftCaret=value;
 		//setCaretUse();
@@ -65,13 +69,17 @@ class TextBox extends Button{
 	public void display(Graphics2D g){
 		g.setColor(isBeingPushed?baseColor:baseColor);
 		g.fill(this);
+		if(caretIndex==0)
+			useLeftCaret=true;
 		if(titleText.length()>0){
 			g.setColor(textColor);
-			this.updateLayouts(true, true);
+			this.updateLayouts(title, true, true);
 			this.displayWrappedEditableText(true,true);
 		}
 		else{
-			//draw lone carat somehow
+			g.setColor(textColor);
+			this.updateLayouts(singleSpace, true, true);
+			this.displayWrappedEditableText(true,true);
 		}
 		g.setColor(borderColor);
 		g.draw(this);
@@ -79,7 +87,7 @@ class TextBox extends Button{
 			
 		}
 	}
-	public void updateLayouts(boolean widthCentered, boolean heightCentered){
+	public void updateLayouts(AttributedCharacterIterator title,boolean widthCentered, boolean heightCentered){
 		int paragraphEnd = title.getEndIndex();
 		LineBreakMeasurer lineMeasurer = new LineBreakMeasurer(title, Simulation.frc);
 		float breakWidth = width-5;
@@ -101,7 +109,6 @@ class TextBox extends Button{
 	    			x+1+(float)((breakWidth-layout.getBounds().getWidth())/2):
 	        		x+2;
 	    	drawPosY += layout.getAscent();
-	    	System.out.println(layout.getCharacterCount());
 	    	layoutContainers.add(new LayoutContainer(layout,drawPosX,drawPosY,initialIndex, containerIndex));
 	    	containerIndex++;
 	    	nextHeight=layout.getAscent()+layout.getLeading()+layout.getDescent();
@@ -121,7 +128,7 @@ class TextBox extends Button{
 		for(int i=0;i<layoutContainers.size();i++){
 			LayoutContainer currentContainer = layoutContainers.get(i);
 			g.setColor(textColor);
-			boolean displayedCaret = currentContainer.display(g, caretIndex, caretLocation, useLeftCaret);
+			boolean displayedCaret = currentContainer.display(g, caretIndex, caretLocation, useLeftCaret, isBeingPushed);
 			if(displayedCaret) updateCaretAttributesFromIndex(currentContainer);
     	}
 	}
@@ -129,12 +136,12 @@ class TextBox extends Button{
 		if(caretIndex==caretContainer.initialIndex)
 			useLeftCaret=true;
 		if(caretIndex==caretContainer.getEndIndex())
-			useLeftCaret=false;*/
+			useLeftCaret=false;
 		System.out.println("Set Caret:" + caretIndex + " to " + useLeftCaret);
 		System.out.println(caretContainer.initialIndex);
 		System.out.println(caretContainer.getEndIndex());
 		System.out.println(caretContainer.containerIndex);
-		System.out.println(layoutContainers.size()-1);
+		System.out.println(layoutContainers.size()-1);*/
 	}
 	public void backspaceActions(){
 		updateCaretAttributesFromIndex();
@@ -201,12 +208,15 @@ class TextBox extends Button{
 	public void setLastClick(int mouseReleaseLocationX, int mouseReleaseLocationY){
 		lastMouseClickX = mouseReleaseLocationX;
 		lastMouseClickY = mouseReleaseLocationY;
-		caretLocation.setLocation(mouseReleaseLocationX, mouseReleaseLocationY);
-		this.updateCaretIndexFromLocation();
+		if(titleText.length()>0){
+			caretLocation.setLocation(mouseReleaseLocationX, mouseReleaseLocationY);
+			this.updateCaretIndexFromLocation();
+		}	
 	}
 	public void updateCaretIndexFromLocation(){
 		for(int i=0;i<layoutContainers.size();i++){
 			LayoutContainer currentContainer = layoutContainers.get(i);
+			//System.out.println(currentContainer);
 
 			if(currentContainer.containsCaret(caretLocation, x, width)){
 				TextHitInfo hit = currentContainer.layout.hitTestChar(
@@ -216,6 +226,7 @@ class TextBox extends Button{
 				useLeftCaret = (caretLocation.getX()<=x+width/2);
 				updateCaretAttributesFromIndex(currentContainer);
     		}
+			
 		}
 	}
 	public void updateCaretAttributesFromIndex(LayoutContainer currentContainer){//updates Location and CaretContainer from Index

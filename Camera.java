@@ -24,6 +24,7 @@ public class Camera implements KeyListener{
 	boolean isZoomingIn=false;
 	boolean isZoomingOut=false;
 	Rectangle bounds;
+	
 	public Camera (Rectangle rect){
 		x=-rect.getCenterX();
 		y=-rect.getCenterY();
@@ -41,7 +42,6 @@ public class Camera implements KeyListener{
 		int keyCode = e.getKeyCode();
 		TextBox currentTextBox = Simulation.getPressedTextBox();
 		if(currentTextBox != null){
-			
 			return;
 		}
 		if(keyCode==KeyEvent.VK_RIGHT){
@@ -77,10 +77,11 @@ public class Camera implements KeyListener{
 		if(keyCode==KeyEvent.VK_ESCAPE){
         	System.exit(1);
 		}
+		System.out.println(e.getKeyChar()+" Char code: " + (int)e.getKeyChar() + " Event: "+e);
 
 		TextBox currentTextBox = Simulation.getPressedTextBox();
 		if(currentTextBox != null){
-			//System.out.println(e.getKeyChar()+" Char code: " + (int)e.getKeyChar() + " Event: "+e);
+			
 			String currentString = currentTextBox.titleText;
 			if(keyCode==KeyEvent.VK_F1){
 	        	System.out.println("X"+currentString+"X");
@@ -99,12 +100,16 @@ public class Camera implements KeyListener{
 			}
 			ArrayList<LayoutContainer> layoutContainers = currentTextBox.layoutContainers;
 			if(keyCode==KeyEvent.VK_BACK_SPACE){
-				if(currentTextBox.caretIndex==0)
+				if(currentTextBox.caretIndex<=0)
 					return;
 				currentTextBox.titleText = currentString.substring(0, currentTextBox.caretIndex-1)+
 						currentString.substring(currentTextBox.caretIndex);
 				currentTextBox.reconstructTitle(true);
 				currentTextBox.backspaceActions();
+			}
+			if(keyCode==KeyEvent.VK_HOME){
+				currentTextBox.caretIndex=0;
+				currentTextBox.useLeftCaret=true;
 			}
 			if(keyCode==KeyEvent.VK_END){
 				currentTextBox.titleText = currentString.substring(0, currentTextBox.caretIndex);

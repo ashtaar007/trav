@@ -20,9 +20,9 @@ class LayoutContainer{
 		this.initialIndex=initialIndex;
 		this.containerIndex=containerIndex;
 	}
-	public boolean display(Graphics2D g, int caretIndex, Point2D caretLocation, boolean useLeftCaret){
+	public boolean display(Graphics2D g, int caretIndex, Point2D caretLocation, boolean useLeftCaret, boolean isBeingPushed){
 		layout.draw(g,drawPosX,drawPosY);
-		if(containsCaret(caretIndex,useLeftCaret)){
+		if(isBeingPushed&&containsCaret(caretIndex,useLeftCaret)){
 			g.setColor(Color.red);
 			
 			
@@ -39,17 +39,22 @@ class LayoutContainer{
 	public int getEndIndex(){
 		return initialIndex+layout.getCharacterCount();
 	}
-	public int getMidIndex(){
-		return (getEndIndex()+initialIndex)/2;
-	}
 	public boolean containsCaret(int caretIndex, boolean useLeftCaret){
 		boolean value = ((initialIndex<=caretIndex && useLeftCaret) || initialIndex<caretIndex)
 				&& ((caretIndex<=getEndIndex()&&!useLeftCaret) || caretIndex<getEndIndex());
+		/*System.out.println("initialIndex:"+initialIndex+" caretIndex:"+caretIndex
+				+" useLeftCaret:"+useLeftCaret+" endIndex:"+getEndIndex()+" result:"+value);*/
+		
+		
 		return value;
 	}
 	public boolean containsCaret(Point2D caretLocation, int textBoxLeftEdge,int textBoxWidth){
 		extraRectangle.setFrame(textBoxLeftEdge,(int)(drawPosY-layout.getAscent()),textBoxWidth,(int)(layout.getAscent()+layout.getDescent()));
 		return extraRectangle.contains(caretLocation);
 			
+	}
+	public String toString(){
+		String s = "containerIndex:"+containerIndex+" initialIndex:"+initialIndex+" endIndex:"+getEndIndex();
+		return s;
 	}
 }
