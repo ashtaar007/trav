@@ -77,7 +77,7 @@ public class Camera implements KeyListener{
 		if(keyCode==KeyEvent.VK_ESCAPE){
         	System.exit(1);
 		}
-		System.out.println(e.getKeyChar()+" Char code: " + (int)e.getKeyChar() + " Event: "+e);
+		//System.out.println(e.getKeyChar()+" Char code: " + (int)e.getKeyChar() + " Event: "+e);
 
 		TextBox currentTextBox = Simulation.getPressedTextBox();
 		if(currentTextBox != null){
@@ -95,7 +95,7 @@ public class Camera implements KeyListener{
 				}
 				currentTextBox.titleText = currentString.substring(0, currentTextBox.caretIndex)+e.getKeyChar()+
 						currentString.substring(currentTextBox.caretIndex);
-				currentTextBox.reconstructTitle(true);
+				currentTextBox.reconstructTitle();
 				currentTextBox.moveCaretRight();
 			}
 			ArrayList<LayoutContainer> layoutContainers = currentTextBox.layoutContainers;
@@ -104,7 +104,7 @@ public class Camera implements KeyListener{
 					return;
 				currentTextBox.titleText = currentString.substring(0, currentTextBox.caretIndex-1)+
 						currentString.substring(currentTextBox.caretIndex);
-				currentTextBox.reconstructTitle(true);
+				currentTextBox.reconstructTitle();
 				currentTextBox.backspaceActions();
 			}
 			if(keyCode==KeyEvent.VK_HOME){
@@ -113,7 +113,7 @@ public class Camera implements KeyListener{
 			}
 			if(keyCode==KeyEvent.VK_END){
 				currentTextBox.titleText = currentString.substring(0, currentTextBox.caretIndex);
-				currentTextBox.reconstructTitle(false);
+				currentTextBox.reconstructTitle();
 				currentTextBox.endActions();
 				
 			}

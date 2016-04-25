@@ -40,19 +40,17 @@ class TextBox extends Button{
 	public TextBox(int x, int y, int width, int height, String title){
 		super(x,y,width,height,title);
 		this.titleText = title;
-		trimTitle();
-		if(titleText.length()>0)
-			this.title=(new AttributedString(titleText,textAttributes)).getIterator();
+		reconstructTitle();
 	}
-	public void reconstructTitle(boolean value){
+	public void reconstructTitle(){
 		trimTitle();
 		if(titleText.length()>0){
 			this.title=(new AttributedString(titleText,textAttributes)).getIterator();
 		}
-		updateLayouts(title,true,true);
-		updateCaretAttributesFromIndex();
-		useLeftCaret=value;
-		//setCaretUse();
+	}
+	public void setTitle(String newString){
+		this.titleText=newString;
+		reconstructTitle();
 	}
 	public void trimTitle(){
 		if(titleText.length()==0)return;

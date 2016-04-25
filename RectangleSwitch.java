@@ -32,6 +32,9 @@ class Button extends Rectangle{
 	public final static Color borderColor=Color.cyan;
 	public boolean isBeingPushed;
 	AttributedCharacterIterator title;
+	public Button(int x, int y, int width, int height){
+		super(x,y,width,height);
+	}
 	public Button(int x, int y, int width, int height, String title){
 		super(x,y,width,height);
 		if(title.length()>0)
@@ -48,7 +51,28 @@ class Button extends Rectangle{
 		g.setColor(borderColor);
 		g.draw(this);
 	}
-	public void push(){
+}
+class CheckBox extends Button{
+	final static Stroke strokeWidth = new BasicStroke(3);
+	public final static Color textColor=Color.green;
+	public CheckBox(int x, int y, int width, int height){
+		super(x,y,width,height);
+	}
+	public void display(Graphics2D g){
+		g.setColor(baseColor);
+		g.fill(this);
+		g.setColor(borderColor);
+		g.draw(this);
+		if(isBeingPushed){
+			g.setStroke(strokeWidth);
+			g.setColor(textColor);
+			g.drawLine(x, (int)(y+.2*height), x+width/2, y+height);
+			g.drawLine(x+width/2, y+height, x+3*width/2, y-height/2);
+		}
+	}
+	public void isChecked(){
+	}
+	public void isUnchecked(){
 	}
 }
 

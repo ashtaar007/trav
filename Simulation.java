@@ -39,6 +39,7 @@ public class Simulation{//TODO: Create text input boxes
     static Map<String,DropDownMenu> menus = new HashMap<String,DropDownMenu>();
     static Map<String,DropDownMenuButton> menuButtons = menuButtonsDefault; //displays active Menu Buttons if not Default
     static Map<String,TextBox> textBoxes = new HashMap<String,TextBox>();
+    static Map<String,CheckBox> checkBoxes = new HashMap<String,CheckBox>();
     
     
 	public Simulation(){
@@ -205,9 +206,13 @@ public class Simulation{//TODO: Create text input boxes
 		menus.get("testMenu").add("Second");
 		x = (int)(.65*bounds.width);
 		textBoxes.put("box", new TextBox(x,y,width,height*4,
-				//"getLogicalRangesForVisualSelection(TextHitInfo firstEndpoint, TextHitInfo secondEndpoint) Returns the logical ranges of text corresponding to a visual selection."
 				"Deviant                                       Art        Lol    Getpwndlolololololololooololoololololololoolololol"
 				));
+		x = (int)(.25*bounds.width);
+		y = (int)(.25*bounds.height);
+		width = (int)(.005*bounds.width);
+		height = (int)(.01*bounds.height);
+		checkBoxes.put("check", new CheckBox(x,y,width,height));
 	}
 	void displayButtons(){
 		for (RectangleSwitch button : buttons.values()) {
@@ -222,6 +227,9 @@ public class Simulation{//TODO: Create text input boxes
 		for (TextBox textBox : textBoxes.values()) {
 			textBox.display(g);
 		}
+		for (CheckBox checkBox : checkBoxes.values()) {
+			checkBox.display(g);
+		}
 	}
 	public static void checkButtonsPressed(int mouseInitialClickLocationX, int mouseInitialClickLocationY){
 		for (RectangleSwitch button : buttons.values()) {
@@ -229,6 +237,17 @@ public class Simulation{//TODO: Create text input boxes
 		}
 		for (TextBox textBox : textBoxes.values()) {
 			textBox.isBeingPushed=textBox.contains(mouseInitialClickLocationX,mouseInitialClickLocationY);
+		}
+		for (CheckBox checkBox : checkBoxes.values()) {
+			if(checkBox.contains(mouseInitialClickLocationX,mouseInitialClickLocationY)){
+				checkBox.isBeingPushed=!checkBox.isBeingPushed;
+				if(checkBox.isBeingPushed){
+					checkBox.isChecked();
+				}
+				else
+					checkBox.isUnchecked();
+			}
+			
 		}
 	}
 	public static void checkButtonsReleased(int mouseReleaseLocationX, int mouseReleaseLocationY){
