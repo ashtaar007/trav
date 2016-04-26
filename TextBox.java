@@ -9,7 +9,7 @@ import java.text.AttributedCharacterIterator;
 import java.text.AttributedString;
 import java.util.ArrayList;
 
-class TextBox extends Button{
+class TextBox extends BasicButton implements Button{
 	/* Note: Currently width is shrunk and spaces are capped 
 	 * to account for defective LineBreakMeasurer which doesn't bound spaces.
 	 * Will need to write new LineBreakMeasurer if care about this. Performance could
@@ -37,8 +37,8 @@ class TextBox extends Button{
 	ArrayList<LayoutContainer> layoutContainers = new ArrayList<LayoutContainer>();
 	LayoutContainer caretContainer;
 	
-	public TextBox(int x, int y, int width, int height, String title){
-		super(x,y,width,height,title);
+	public TextBox(int id, int x, int y, int width, int height, String title){
+		super(id,x,y,width,height,title);
 		this.titleText = title;
 		reconstructTitle();
 	}
@@ -65,7 +65,7 @@ class TextBox extends Button{
 		titleText=newString;
 	}
 	public void display(Graphics2D g){
-		g.setColor(isBeingPushed?baseColor:baseColor);
+		g.setColor(isBeingPushed()?baseColor:baseColor);
 		g.fill(this);
 		if(caretIndex==0)
 			useLeftCaret=true;
@@ -81,9 +81,6 @@ class TextBox extends Button{
 		}
 		g.setColor(borderColor);
 		g.draw(this);
-		if(isBeingPushed){//display Carat
-			
-		}
 	}
 	public void updateLayouts(AttributedCharacterIterator title,boolean widthCentered, boolean heightCentered){
 		int paragraphEnd = title.getEndIndex();
@@ -126,7 +123,7 @@ class TextBox extends Button{
 		for(int i=0;i<layoutContainers.size();i++){
 			LayoutContainer currentContainer = layoutContainers.get(i);
 			g.setColor(textColor);
-			boolean displayedCaret = currentContainer.display(g, caretIndex, caretLocation, useLeftCaret, isBeingPushed);
+			boolean displayedCaret = currentContainer.display(g, caretIndex, caretLocation, useLeftCaret, isBeingPushed());
 			if(displayedCaret) updateCaretAttributesFromIndex(currentContainer);
     	}
 	}
@@ -202,6 +199,10 @@ class TextBox extends Button{
 				+caretContainer.layout.getDescent();
 		caretLocation.setLocation(caretLocation.getX(), caretLocation.getY()+extraHeight);
 		this.updateCaretIndexFromLocation();
+	}
+	public void mouseReleased(int mouseReleaseLocationX, int mouseReleaseLocationY){
+		if(isBeingPushed()&&contains(mouseReleaseLocationX,mouseReleaseLocationY))
+			setLastClick(mouseReleaseLocationX,mouseReleaseLocationY);
 	}
 	public void setLastClick(int mouseReleaseLocationX, int mouseReleaseLocationY){
 		lastMouseClickX = mouseReleaseLocationX;

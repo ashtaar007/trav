@@ -34,12 +34,22 @@ public class Simulation{//TODO: Create text input boxes
     ArrayList<RenderObject> selectedObjects;
     static Color myColor = new Color(128,0,128,255);
     
-    public static final Map<String,DropDownMenuButton> menuButtonsDefault = new HashMap<String,DropDownMenuButton>();
-    static Map<String,RectangleSwitch> buttons = new HashMap<String,RectangleSwitch>();
-    static Map<String,DropDownMenu> menus = new HashMap<String,DropDownMenu>();
-    static Map<String,DropDownMenuButton> menuButtons = menuButtonsDefault; //displays active Menu Buttons if not Default
-    static Map<String,TextBox> textBoxes = new HashMap<String,TextBox>();
-    static Map<String,CheckBox> checkBoxes = new HashMap<String,CheckBox>();
+    public static final Map<Integer,Button> menuButtonsDefault = new HashMap<Integer,Button>();
+    //Simulation buttons
+    static Map<String,Map<Integer,Button>> simulationMaps = new HashMap<String,Map<Integer,Button>>();
+    //static Map<Integer,Button> simulationMaps.get("buttons") = new HashMap<Integer,Button>();
+    static{
+    	simulationMaps.put("buttons",new HashMap<Integer,Button>());
+    }
+    //ShipBuilder buttons
+    static Map<String,Map<Integer,Button>> builderMaps = new HashMap<String,Map<Integer,Button>>();
+    static{
+    	builderMaps.put("buttons",new HashMap<Integer,Button>());
+    	builderMaps.put("menus",new HashMap<Integer,Button>());
+    	builderMaps.put("menuButtons",menuButtonsDefault);
+    	builderMaps.put("textBoxes",new HashMap<Integer,Button>());
+    	builderMaps.put("checkBoxes",new HashMap<Integer,Button>());
+    }
     
     
 	public Simulation(){
@@ -103,7 +113,7 @@ public class Simulation{//TODO: Create text input boxes
 		this.displayButtons();
 	}
 	static void calculateSimulation(long timeElapsed){
-		double factoredTimeElapsed=isPaused?0:timeElapsed*timeFactor;
+		double factoredTimeElapsed=(isPaused)?0:timeElapsed*timeFactor;
 		if(factoredTimeElapsed>100000) {timeFactor = 1; return;}
 		double timeLeft=factoredTimeElapsed;
 		double dt = Math.min(calculationInterval, timeLeft);
@@ -191,91 +201,106 @@ public class Simulation{//TODO: Create text input boxes
 	}
 	
 	//BUTTON METHODS
+	
+	
 	void initButtons(Rectangle bounds){
 		int x = (int)(.95*bounds.width);
-		int y = (int)(.95*bounds.height);
+		int y = (int)(.975*bounds.height);
 		int width = (int)(.05*bounds.width);
 		int height = (int)(.025*bounds.height);
-	    buttons.put("Setup",new RectangleSwitch(x,y,width,height,isSetupMode,"Play","Setup"));
-		y = (int)(.975*bounds.height);
-		buttons.put("Builder",new RectangleSwitch(x,y,width,height,isShipBuilderScreen,"Simulator","Builder"));
+		int id = RectangleSwitch.BUILDER;
+		simulationMaps.get("buttons").put(id,new RectangleSwitch(id,x,y,width,height,isShipBuilderScreen,"Simulator","Builder"));
+		builderMaps.get("buttons").put(id,(Button)simulationMaps.get("buttons").get(RectangleSwitch.BUILDER));
+		y = (int)(.95*bounds.height);
+		id = RectangleSwitch.SETUP;
+		simulationMaps.get("buttons").put(id,new RectangleSwitch(id,x,y,width,height,isSetupMode,"Play","Setup"));
 		x = (int)(.45*bounds.width);
 		y = (int)(.25*bounds.height);
-		menus.put("testMenu", new DropDownMenu(x,y,width,height,"testMenu"));
-		menus.get("testMenu").add("First lolololool");
-		menus.get("testMenu").add("Second");
+		String name = "testMenu";
+		id=-99;
+		builderMaps.get("menus").put(id, new DropDownMenu(id,x,y,width,height,name));
+		((DropDownMenu)builderMaps.get("menus").get(id)).add(id,"First lolololool");
+		((DropDownMenu)builderMaps.get("menus").get(id)).add(id+1,"Second");
 		x = (int)(.65*bounds.width);
-		textBoxes.put("box", new TextBox(x,y,width,height*4,
+		builderMaps.get("textBoxes").put(id, new TextBox(id,x,y,width,height*4,
 				"Deviant                                       Art        Lol    Getpwndlolololololololooololoololololololoolololol"
 				));
 		x = (int)(.25*bounds.width);
 		y = (int)(.25*bounds.height);
 		width = (int)(.005*bounds.width);
 		height = (int)(.01*bounds.height);
-		checkBoxes.put("check", new CheckBox(x,y,width,height));
+		builderMaps.get("checkBoxes").put(id, new CheckBox(id,x,y,width,height));
 	}
-	void displayButtons(){
-		for (RectangleSwitch button : buttons.values()) {
-			button.display(g);
+	static void displayButtons(){
+		if(!isShipBuilderScreen.value){//Simulation Buttons
+			for (Map<Integer,Button> map : simulationMaps.values()) {
+				for (Button button : map.values()) {
+					button.display(g);
+				}
+			}
 		}
-		for (DropDownMenu menu : menus.values()) {
-			menu.display(g);
-		}
-		for (DropDownMenuButton button : menuButtons.values()) {
-			button.display(g);
-		}
-		for (TextBox textBox : textBoxes.values()) {
-			textBox.display(g);
-		}
-		for (CheckBox checkBox : checkBoxes.values()) {
-			checkBox.display(g);
+		else{//ShipBuilder buttons
+			for (Map<Integer,Button> map : builderMaps.values()) {
+				for (Button button : map.values()) {
+					button.display(g);
+				}
+			}
 		}
 	}
 	public static void checkButtonsPressed(int mouseInitialClickLocationX, int mouseInitialClickLocationY){
-		for (RectangleSwitch button : buttons.values()) {
-			button.isBeingPushed=button.contains(mouseInitialClickLocationX,mouseInitialClickLocationY);
-		}
-		for (TextBox textBox : textBoxes.values()) {
-			textBox.isBeingPushed=textBox.contains(mouseInitialClickLocationX,mouseInitialClickLocationY);
-		}
-		for (CheckBox checkBox : checkBoxes.values()) {
-			if(checkBox.contains(mouseInitialClickLocationX,mouseInitialClickLocationY)){
-				checkBox.isBeingPushed=!checkBox.isBeingPushed;
-				if(checkBox.isBeingPushed){
-					checkBox.isChecked();
+		if(!isShipBuilderScreen.value){//Simulation Buttons
+			for (Map<Integer,Button> map : simulationMaps.values()) {
+				for (Button button : map.values()) {
+					button.mousePressed(mouseInitialClickLocationX,mouseInitialClickLocationY);
 				}
-				else
-					checkBox.isUnchecked();
 			}
-			
+		}
+		else{//ShipBuilder buttons
+			for (Map<Integer,Button> map : builderMaps.values()) {
+				for (Button button : map.values()) {
+					button.mousePressed(mouseInitialClickLocationX,mouseInitialClickLocationY);
+				}
+			}
 		}
 	}
 	public static void checkButtonsReleased(int mouseReleaseLocationX, int mouseReleaseLocationY){
-		for (RectangleSwitch button : buttons.values()) {
-			if(button.isBeingPushed&&button.contains(mouseReleaseLocationX,mouseReleaseLocationY))
-				button.push();
-			button.isBeingPushed=false;
+		if(!isShipBuilderScreen.value){//Simulation Buttons
+			for (Map<Integer,Button> map : simulationMaps.values()) {
+				for (Button button : map.values()) {
+					button.mouseReleased(mouseReleaseLocationX,mouseReleaseLocationY);
+				}
+			}
 		}
-		for (TextBox textBox : textBoxes.values()) {
-			if(textBox.isBeingPushed&&textBox.contains(mouseReleaseLocationX,mouseReleaseLocationY))
-				textBox.setLastClick(mouseReleaseLocationX,mouseReleaseLocationY);
-		}
-		for (DropDownMenuButton button : menuButtons.values()) {
-			if(button.isBeingPushed&&button.contains(mouseReleaseLocationX,mouseReleaseLocationY))
-				button.push();
+		else{//ShipBuilder buttons
+			for (Map<Integer,Button> map : builderMaps.values()) {
+				for (Button button : map.values()) {
+					button.mouseReleased(mouseReleaseLocationX,mouseReleaseLocationY);
+				}
+			}
 		}
 	}
 	public static void checkButtonsMoved(int mouseCurrentLocationX, int mouseCurrentLocationY){
-		for (DropDownMenu menu : menus.values()) {
-			menu.isBeingPushed=menu.contains(mouseCurrentLocationX,mouseCurrentLocationY);
-			menuButtons=menu.isBeingPushed?menu.map:menuButtonsDefault;
+		if(!isShipBuilderScreen.value){//Simulation Buttons
+			for (Map<Integer,Button> map : simulationMaps.values()) {
+				for (Button button : map.values()) {
+					button.mouseMoved(mouseCurrentLocationX,mouseCurrentLocationY);
+				}
+			}
 		}
-		
+		else{//ShipBuilder buttons
+			for (Map<Integer,Button> map : builderMaps.values()) {
+				for (Button button : map.values()) {
+					button.mouseMoved(mouseCurrentLocationX,mouseCurrentLocationY);
+				}
+			}
+		}
 	}
 	public static TextBox getPressedTextBox(){
-		for (TextBox textBox : textBoxes.values()) {
-			if (textBox.isBeingPushed)
-				return textBox;
+		if(isShipBuilderScreen.value){
+			for (Button textBox : builderMaps.get("textBoxes").values()) {
+				if (textBox.isBeingPushed())
+					return (TextBox)textBox;
+			}
 		}
 		return null;
 	}
@@ -372,9 +397,6 @@ public class Simulation{//TODO: Create text input boxes
 		};
 		return gravityObjects;
 	}
-	
-    
-
 	public static void main(String[] args) {
 		ShipBuilder builder = new ShipBuilder();
 		Ship ship = builder.createShip();
